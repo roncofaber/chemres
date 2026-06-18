@@ -61,8 +61,9 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey
 
-	if cas, _ := r.client.fetchCAS(p.CID); cas != "" {
-		result.CAS = cas
+	if cas, syns, _ := r.client.fetchSynonyms(p.CID); cas != "" || len(syns) > 0 {
+		result.CAS      = cas
+		result.Synonyms = syns
 	}
 	if fetchSVG {
 		if svg, _ := r.client.fetchSVG(p.CID); svg != "" {
@@ -71,6 +72,8 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	}
 	return result, nil
 }
+
+func (r *SmilesResolver) Suggest(_ string) ([]string, error) { return nil, nil }
 
 func (r *SmilesResolver) Batch(inputs []string) ([]CompoundResult, error) {
 	results := make([]CompoundResult, len(inputs))

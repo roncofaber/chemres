@@ -41,7 +41,7 @@ func TestNameResolver_Resolve(t *testing.T) {
 	srv := newNameTestServer(t)
 	defer srv.Close()
 
-	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	got, err := r.Resolve("acetone")
 	if err != nil {
 		t.Fatal(err)
@@ -66,7 +66,7 @@ func TestNameResolver_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	got, err := r.Resolve("notacompound12345xyz")
 	if err != nil {
 		t.Fatal(err)
@@ -80,7 +80,7 @@ func TestNameResolver_Batch(t *testing.T) {
 	srv := newNameTestServer(t)
 	defer srv.Close()
 
-	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	results, err := r.Batch([]string{"acetone", "acetone"})
 	if err != nil {
 		t.Fatal(err)

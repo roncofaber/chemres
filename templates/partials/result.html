@@ -79,6 +79,14 @@
     {{end}}
     <tr><td>CID</td><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a></td></tr>
   </table>
+  {{if .Synonyms}}
+  <details>
+    <summary>Synonyms ({{len .Synonyms}})</summary>
+    <div class="synonyms-wrap">
+      {{range .Synonyms}}<span class="synonym-tag">{{.}}</span>{{end}}
+    </div>
+  </details>
+  {{end}}
 </div>
 
 <script>

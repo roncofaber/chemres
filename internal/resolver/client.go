@@ -13,22 +13,25 @@ import (
 	"time"
 )
 
-const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
+const pubchemBase          = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+const pubchemAutocomplete  = "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete"
+const propertyFields       = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
 
 var errNotFound = errors.New("not found")
 var errBadInput  = errors.New("bad input")
 var casRE = regexp.MustCompile(`^\d+-\d+-\d+$`)
 
 type pubchemClient struct {
-	baseURL string
-	http    *http.Client
+	baseURL       string
+	autocompleteBase string
+	http          *http.Client
 }
 
 func newPubchemClient() *pubchemClient {
 	return &pubchemClient{
-		baseURL: pubchemBase,
-		http:    &http.Client{Timeout: 15 * time.Second},
+		baseURL:          pubchemBase,
+		autocompleteBase: pubchemAutocomplete,
+		http:             &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -121,31 +124,57 @@ func (c *pubchemClient) fetchSVG(cid int) (template.HTML, error) {
 	return template.HTML(b), nil
 }
 
-// fetchCAS scans PubChem synonyms for the first CAS registry number.
-func (c *pubchemClient) fetchCAS(cid int) (string, error) {
+// fetchSynonyms returns all synonyms and the first CAS number for a CID.
+func (c *pubchemClient) fetchSynonyms(cid int) (cas string, synonyms []string, err error) {
 	u := fmt.Sprintf("%s/compound/cid/%d/synonyms/JSON", c.baseURL, cid)
 	resp, err := c.http.Get(u)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		return "", nil
+		return "", nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("synonyms fetch returned %d", resp.StatusCode)
+		return "", nil, fmt.Errorf("synonyms fetch returned %d", resp.StatusCode)
 	}
 	var sr synonymResponse
 	if err := json.NewDecoder(resp.Body).Decode(&sr); err != nil {
-		return "", err
+		return "", nil, err
 	}
 	if len(sr.InformationList.Information) == 0 {
-		return "", nil
+		return "", nil, nil
 	}
-	for _, syn := range sr.InformationList.Information[0].Synonym {
+	synonyms = sr.InformationList.Information[0].Synonym
+	for _, syn := range synonyms {
 		if casRE.MatchString(syn) {
-			return syn, nil
+			cas = syn
+			break
 		}
 	}
-	return "", nil
+	return cas, synonyms, nil
+}
+
+type autocompleteResponse struct {
+	DictionaryTerms struct {
+		Compound []string `json:"compound"`
+	} `json:"dictionary_terms"`
+}
+
+// autocomplete returns name suggestions for the given prefix.
+func (c *pubchemClient) autocomplete(prefix string, limit int) ([]string, error) {
+	u := fmt.Sprintf("%s/compound/%s/JSON?limit=%d", c.autocompleteBase, url.PathEscape(prefix), limit)
+	resp, err := c.http.Get(u)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil
+	}
+	var result autocompleteResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return result.DictionaryTerms.Compound, nil
 }

@@ -22,8 +22,9 @@ func main() {
 
 	for _, r := range resolvers {
 		id := r.SystemID()
-		mux.Handle("/"+id+"/resolve", handlers.NewResolveHandler(tmpl, r))
-		mux.Handle("/"+id+"/batch", handlers.NewBatchHandler(tmpl, r))
+		mux.Handle("/"+id+"/resolve",  handlers.NewResolveHandler(tmpl, r))
+		mux.Handle("/"+id+"/batch",    handlers.NewBatchHandler(tmpl, r))
+		mux.Handle("/"+id+"/suggest",  handlers.NewSuggestHandler(tmpl, r))
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

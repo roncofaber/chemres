@@ -41,7 +41,7 @@ func TestSmilesResolver_Resolve(t *testing.T) {
 	srv := newSmilesTestServer(t)
 	defer srv.Close()
 
-	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	got, err := r.Resolve("CC(C)=O")
 	if err != nil {
 		t.Fatal(err)
@@ -58,6 +58,9 @@ func TestSmilesResolver_Resolve(t *testing.T) {
 	if got.SVG == "" {
 		t.Error("expected non-empty SVG")
 	}
+	if len(got.Synonyms) == 0 {
+		t.Error("expected non-empty Synonyms")
+	}
 }
 
 func TestSmilesResolver_NotFound(t *testing.T) {
@@ -66,7 +69,7 @@ func TestSmilesResolver_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	got, err := r.Resolve("INVALID")
 	if err != nil {
 		t.Fatal(err)
@@ -80,7 +83,7 @@ func TestSmilesResolver_Batch(t *testing.T) {
 	srv := newSmilesTestServer(t)
 	defer srv.Close()
 
-	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, http: srv.Client()}}
+	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
 	results, err := r.Batch([]string{"CC(C)=O", "CC(C)=O"})
 	if err != nil {
 		t.Fatal(err)

@@ -15,6 +15,7 @@ type CompoundResult struct {
 	MW         string
 	InChIKey   string
 	CAS        string
+	Synonyms   []string
 	SVG        template.HTML
 	ResolvedAt time.Time
 	Error      string
@@ -25,4 +26,5 @@ type Resolver interface {
 	Name()     string
 	Resolve(input string) (CompoundResult, error)
 	Batch(inputs []string) ([]CompoundResult, error)
+	Suggest(query string) ([]string, error)
 }

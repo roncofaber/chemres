@@ -23,6 +23,7 @@ func (s *stubResolver) Resolve(input string) (resolver.CompoundResult, error) {
 	s.result.Input = input
 	return s.result, s.err
 }
+func (s *stubResolver) Suggest(_ string) ([]string, error) { return nil, nil }
 func (s *stubResolver) Batch(inputs []string) ([]resolver.CompoundResult, error) {
 	results := make([]resolver.CompoundResult, len(inputs))
 	for i, in := range inputs {

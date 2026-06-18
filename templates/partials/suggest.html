@@ -1,0 +1,15 @@
+{{define "suggest.html"}}
+{{if .}}
+<ul class="suggest-list">
+  {{range .}}
+  <li class="suggest-item"
+      onmousedown="event.preventDefault();
+                   document.getElementById('name-input').value='{{.}}';
+                   document.getElementById('name-suggestions').innerHTML='';
+                   document.getElementById('name-single-form').requestSubmit();">
+    <span class="suggest-name">{{.}}</span>
+  </li>
+  {{end}}
+</ul>
+{{end}}
+{{end}}

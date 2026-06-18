@@ -54,7 +54,7 @@ func TestFetchProperties_NotFound(t *testing.T) {
 	}
 }
 
-func TestFetchCAS(t *testing.T) {
+func TestFetchSynonyms(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != fmt.Sprintf("/compound/cid/%d/synonyms/JSON", 180) {
 			http.Error(w, "unexpected path", 404)
@@ -72,11 +72,14 @@ func TestFetchCAS(t *testing.T) {
 	defer srv.Close()
 
 	c := &pubchemClient{baseURL: srv.URL, http: srv.Client()}
-	cas, err := c.fetchCAS(180)
+	cas, syns, err := c.fetchSynonyms(180)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if cas != "67-64-1" {
-		t.Errorf("got %q, want %q", cas, "67-64-1")
+		t.Errorf("cas: got %q, want %q", cas, "67-64-1")
+	}
+	if len(syns) != 3 {
+		t.Errorf("synonyms: got %d, want 3", len(syns))
 	}
 }

@@ -1,9 +1,13 @@
 package resolver
 
 import (
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 )
+
+var inchiKeyRE = regexp.MustCompile(`^[A-Z]{14}-[A-Z]{10}-[A-Z]$`)
 
 type NameResolver struct {
 	client *pubchemClient
@@ -23,7 +27,12 @@ func (r *NameResolver) Resolve(input string) (CompoundResult, error) {
 func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
-	props, err := r.client.fetchProperties("name", input, false)
+	namespace := "name"
+	if inchiKeyRE.MatchString(input) {
+		namespace = "inchikey"
+	}
+
+	props, err := r.client.fetchProperties(namespace, input, false)
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
 		return result, nil
@@ -59,8 +68,9 @@ func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, err
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey
 
-	if cas, _ := r.client.fetchCAS(p.CID); cas != "" {
-		result.CAS = cas
+	if cas, syns, _ := r.client.fetchSynonyms(p.CID); cas != "" || len(syns) > 0 {
+		result.CAS      = cas
+		result.Synonyms = syns
 	}
 	if fetchSVG {
 		if svg, _ := r.client.fetchSVG(p.CID); svg != "" {
@@ -68,6 +78,13 @@ func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, err
 		}
 	}
 	return result, nil
+}
+
+func (r *NameResolver) Suggest(query string) ([]string, error) {
+	if len(strings.TrimSpace(query)) < 2 {
+		return nil, nil
+	}
+	return r.client.autocomplete(query, 10)
 }
 
 func (r *NameResolver) Batch(inputs []string) ([]CompoundResult, error) {

@@ -798,3 +798,22 @@ textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(26,92,58,0.12);
 }
+
+/* ── Synonyms ────────────────────────────────────────────────── */
+.synonyms-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-top: 0.6rem;
+}
+
+.synonym-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: var(--bg);
+  border: 1px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 0.15em 0.5em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
