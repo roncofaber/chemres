@@ -77,13 +77,13 @@
 
   --text:         #d4e4f4;
   --text-muted:   #547090;
-  --text-faint:   #263c52;
+  --text-faint:   #4a6a8a;
 
   --accent:       #22d3ee;
   --accent-hover: #06b6d4;
 
-  --found-bg:        rgba(5,150,105,0.07);
-  --found-border:    #065f46;
+  --found-bg:        rgba(5,150,105,0.13);
+  --found-border:    #059669;
   --found-border-hi: #059669;
   --found-text:      #34d399;
   --found-badge:     #059669;
@@ -118,7 +118,7 @@
   --found-glow-near:     rgba(5,150,105,0.10);
   --found-glow-far:      rgba(5,150,105,0.08);
   --invalid-glow:        rgba(153,27,27,0.15);
-  --structure-bg:        #f2f6fc;
+  --structure-bg:        #d8e8f0;
 }
 
 /* ── Reset ───────────────────────────────────────────────────── */

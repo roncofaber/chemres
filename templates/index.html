@@ -229,7 +229,7 @@
 
     var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, currentTheme(), function(svgEl) {
+    drawer.draw(largest, null, 'light', function(svgEl) {
       cont.appendChild(svgEl);
       var pngBtn = document.getElementById('modal-png-btn');
       document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
@@ -258,7 +258,7 @@
     var name    = el.getAttribute('data-name') || smiles;
     var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, currentTheme(), function(svgEl) {
+    drawer.draw(largest, null, 'light', function(svgEl) {
       el.innerHTML = '';
       el.appendChild(svgEl);
 
