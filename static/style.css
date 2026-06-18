@@ -928,7 +928,7 @@ details summary::-webkit-details-marker { display: none; }
   max-width: 720px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.25rem 0 2rem;
+  padding: 1.25rem 2rem 2rem;
   border-top: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: 0.66rem;
