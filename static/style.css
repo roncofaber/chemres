@@ -460,11 +460,6 @@ input[type="file"] {
   animation: fadeIn 0.22s ease;
 }
 
-.result-box::after {
-  content: '';
-  display: table;
-  clear: both;
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
@@ -934,10 +929,21 @@ details summary::-webkit-details-marker { display: none; }
 
 .site-footer a:hover { color: var(--accent); }
 
+/* ── Result body (two-column: fields + structure) ────────────── */
+.result-body {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.result-body .result-fields {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Structure image (specimen on substrate) ─────────────────── */
 .structure-wrap {
-  float: right;
-  margin: 0 0 0.75rem 1.5rem;
+  flex-shrink: 0;
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   background: var(--structure-bg);

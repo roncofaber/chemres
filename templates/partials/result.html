@@ -5,10 +5,8 @@
 </div>
 {{else}}
 <div class="result-box valid">
-  {{if .Canonical}}
-  <div class="structure-wrap" data-smiles="{{.Canonical}}" style="display:none"></div>
-  {{end}}
-  <table class="result-fields">
+  <div class="result-body">
+    <table class="result-fields">
     <tr class="copyable-row">
       <td>IUPAC</td>
       <td>
@@ -78,6 +76,10 @@
     {{end}}
     <tr><td>CID</td><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a></td></tr>
   </table>
+  {{if .Canonical}}
+  <div class="structure-wrap" data-smiles="{{.Canonical}}" style="display:none"></div>
+  {{end}}
+  </div>{{/* end result-body */}}
   {{if .Synonyms}}
   <details>
     <summary>Synonyms ({{len .Synonyms}})</summary>

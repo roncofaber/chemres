@@ -83,33 +83,27 @@
   }
 
   function drawStructure(el) {
-    if (!el || typeof SmilesDrawer === 'undefined') return;
+    console.log('[SD] drawStructure called', el);
+    if (!el || typeof SmilesDrawer === 'undefined') { console.log('[SD] abort: no el or no SmilesDrawer'); return; }
     var smiles = el.getAttribute('data-smiles');
-    // For salts/mixtures (dot notation) draw the largest component
     var target = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
-    var sw     = el.closest('.structure-wrap');
+    var sw     = el;
     var theme  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    var opts   = {
-      width: 200, height: 160,
-      fontFamily: 'Fira Code, monospace',
-      padding: 12,
-      bondThickness: 1.4,
-      isomeric: true,
-      explicitHydrogens: false,
-    };
-    // v2 API: SmiDrawer.draw(tree, 'svg', theme, weights, callback) returns a new SVG element
-    var drawer = new SmilesDrawer.SmiDrawer(opts);
-    SmilesDrawer.parse(target, function(tree) {
-      drawer.draw(tree, 'svg', theme, null, function(svgEl) {
-        sw.innerHTML = '';
-        sw.appendChild(svgEl);
-        sw.style.display = '';
-      });
-    }, function() { /* keep hidden on parse error */ });
+    console.log('[SD] smiles:', target, 'theme:', theme, 'SmiDrawer:', typeof SmilesDrawer.SmiDrawer);
+    var drawer = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
+    // SmiDrawer.draw(smiles, target, theme, successCb, errorCb) — takes raw SMILES, not parse tree
+    drawer.draw(target, null, theme, function(svgEl) {
+      console.log('[SD] draw success, svgEl:', svgEl);
+      sw.innerHTML = '';
+      sw.appendChild(svgEl);
+      sw.style.display = '';
+    }, function(err) { console.log('[SD] draw error:', err); });
   }
 
   document.addEventListener('htmx:afterSettle', function() {
-    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
+    var els = document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])');
+    console.log('[SD] htmx:afterSettle fired, elements found:', els.length);
+    els.forEach(function(el) {
       el.setAttribute('data-sd-rendered', '1');
       drawStructure(el);
     });
