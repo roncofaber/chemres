@@ -77,7 +77,7 @@
     <tr><td>CID</td><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a></td></tr>
   </table>
   {{if .Canonical}}
-  <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{.IUPAC}}" style="display:none"></div>
+  <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" style="display:none"></div>
   {{end}}
   </div>{{/* end result-body */}}
   {{if .Synonyms}}

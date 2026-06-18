@@ -69,8 +69,9 @@ func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, err
 	result.InChIKey  = p.InChIKey
 
 	if cas, syns, _ := r.client.fetchSynonyms(p.CID); cas != "" || len(syns) > 0 {
-		result.CAS      = cas
-		result.Synonyms = syns
+		result.CAS        = cas
+		result.Synonyms   = syns
+		result.CommonName = firstCommonName(syns)
 	}
 	if fetchSVG {
 		if svg, _ := r.client.fetchSVG(p.CID); svg != "" {

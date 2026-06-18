@@ -15,6 +15,7 @@ type CompoundResult struct {
 	MW         string
 	InChIKey   string
 	CAS        string
+	CommonName string
 	Synonyms   []string
 	SVG        template.HTML
 	ResolvedAt time.Time

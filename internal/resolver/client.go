@@ -19,7 +19,24 @@ const propertyFields       = "IUPACName,MolecularFormula,MolecularWeight,InChIKe
 
 var errNotFound = errors.New("not found")
 var errBadInput  = errors.New("bad input")
-var casRE = regexp.MustCompile(`^\d+-\d+-\d+$`)
+var casRE      = regexp.MustCompile(`^\d+-\d+-\d+$`)
+var inchiKeyRE2 = regexp.MustCompile(`^[A-Z]{14}-[A-Z]{10}-[A-Z]$`)
+
+// firstCommonName returns the first synonym that looks like a human-readable name
+// (not a CAS number, InChIKey, or registry code).
+func firstCommonName(synonyms []string) string {
+	for _, s := range synonyms {
+		if casRE.MatchString(s) || inchiKeyRE2.MatchString(s) {
+			continue
+		}
+		// Skip internal registry codes (contain colons)
+		if strings.ContainsRune(s, ':') {
+			continue
+		}
+		return s
+	}
+	return ""
+}
 
 type pubchemClient struct {
 	baseURL       string
