@@ -32,7 +32,7 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	}
 	if err == errBadInput {
 		result.Error = "Invalid SMILES — not recognized by PubChem"
-		return result, nil
+		return result, errBadInput // propagate so AutoResolver can fallback
 	}
 	if err != nil {
 		return result, err
