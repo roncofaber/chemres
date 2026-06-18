@@ -963,16 +963,121 @@ details summary::-webkit-details-marker { display: none; }
 /* ── Structure image (specimen on substrate) ─────────────────── */
 .structure-wrap {
   flex-shrink: 0;
+  position: relative;
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   background: var(--structure-bg);
   padding: 0.35rem;
   line-height: 0;
   box-shadow: 0 4px 20px var(--found-glow-near);
+  transition: box-shadow 0.15s;
+}
+
+.structure-wrap:hover {
+  box-shadow: 0 4px 20px var(--found-glow-near), 0 0 0 2px var(--accent);
 }
 
 .structure-wrap svg {
   display: block;
+}
+
+/* Download button — appears on hover */
+.structure-dl {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.structure-wrap:hover .structure-dl { opacity: 1; }
+
+.structure-dl:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Structure modal ─────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  max-width: 90vw;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.modal-close:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.modal-structure {
+  background: var(--structure-bg);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  line-height: 0;
 }
 
 /* ── Textarea ────────────────────────────────────────────────── */

@@ -61,6 +61,29 @@
     {{end}}
   </div>
 
+  <!-- Structure modal -->
+  <div id="structure-modal" class="modal-overlay" style="display:none" onclick="closeStructureModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="modal-name" class="modal-title"></span>
+        <div class="modal-actions">
+          <button id="modal-dl-btn" class="btn btn-sm">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
+              <path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/>
+            </svg>
+            SVG
+          </button>
+          <button class="modal-close" onclick="closeStructureModal()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
+              <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="modal-structure" class="modal-structure"></div>
+    </div>
+  </div>
+
   <footer class="site-footer">
     <span><a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem REST API</a></span>
     <a href="https://github.com/roncofaber/chem-resolver" target="_blank" rel="noopener">
@@ -76,34 +99,91 @@
     document.getElementById('tab-' + id).classList.add('active');
     document.querySelector('[data-tab="' + id + '"]').classList.add('active');
   }
+
   function toggleTheme() {
     var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('chem-resolver-theme', next);
   }
 
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function downloadSvg(svgEl, name) {
+    var src = new XMLSerializer().serializeToString(svgEl);
+    if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    var blob = new Blob([src], {type: 'image/svg+xml;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = (name || 'structure').replace(/[^\w-]/g, '_').substring(0, 60) + '.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function openStructureModal(smiles, name) {
+    var modal  = document.getElementById('structure-modal');
+    var cont   = document.getElementById('modal-structure');
+    document.getElementById('modal-name').textContent = name || smiles;
+    cont.innerHTML = '';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
+    var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
+    drawer.draw(largest, null, currentTheme(), function(svgEl) {
+      cont.appendChild(svgEl);
+      document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
+    }, function() {
+      cont.innerHTML = '<p style="color:var(--error-text);padding:1rem;font-family:var(--font-mono);font-size:0.8rem">Could not render structure.</p>';
+    });
+  }
+
+  function closeStructureModal(evt) {
+    if (evt && evt.target !== document.getElementById('structure-modal')) return;
+    document.getElementById('structure-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('structure-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+
   function drawStructure(el) {
-    console.log('[SD] drawStructure called', el);
-    if (!el || typeof SmilesDrawer === 'undefined') { console.log('[SD] abort: no el or no SmilesDrawer'); return; }
-    var smiles = el.getAttribute('data-smiles');
-    var target = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
-    var sw     = el;
-    var theme  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    console.log('[SD] smiles:', target, 'theme:', theme, 'SmiDrawer:', typeof SmilesDrawer.SmiDrawer);
-    var drawer = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
-    // SmiDrawer.draw(smiles, target, theme, successCb, errorCb) — takes raw SMILES, not parse tree
-    drawer.draw(target, null, theme, function(svgEl) {
-      console.log('[SD] draw success, svgEl:', svgEl);
-      sw.innerHTML = '';
-      sw.appendChild(svgEl);
-      sw.style.display = '';
-    }, function(err) { console.log('[SD] draw error:', err); });
+    if (!el || typeof SmilesDrawer === 'undefined') return;
+    var smiles  = el.getAttribute('data-smiles');
+    var name    = el.getAttribute('data-name') || smiles;
+    var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
+    var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
+    drawer.draw(largest, null, currentTheme(), function(svgEl) {
+      el.innerHTML = '';
+      el.appendChild(svgEl);
+
+      // Download button
+      var dlBtn = document.createElement('button');
+      dlBtn.className = 'structure-dl';
+      dlBtn.title = 'Download SVG';
+      dlBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/></svg>';
+      dlBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        downloadSvg(svgEl, name);
+      });
+      el.appendChild(dlBtn);
+
+      el.style.display = '';
+      el.style.cursor  = 'zoom-in';
+      el.addEventListener('click', function() { openStructureModal(smiles, name); });
+    }, function() { /* keep hidden */ });
   }
 
   document.addEventListener('htmx:afterSettle', function() {
-    var els = document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])');
-    console.log('[SD] htmx:afterSettle fired, elements found:', els.length);
-    els.forEach(function(el) {
+    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
       el.setAttribute('data-sd-rendered', '1');
       drawStructure(el);
     });
