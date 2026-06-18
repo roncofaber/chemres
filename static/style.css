@@ -947,8 +947,6 @@ details summary::-webkit-details-marker { display: none; }
 }
 
 .structure-wrap svg {
-  width: 190px;
-  height: 145px;
   display: block;
 }
 
