@@ -7,6 +7,14 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script>
+    (function(){
+      var t=localStorage.getItem('chem-resolver-theme')||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+      /* default is light — only set attribute when dark to avoid overriding :root */
+      document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
@@ -18,6 +26,18 @@
         <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
         <circle cx="50" cy="50" r="24" stroke-width="1"/>
       </svg>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
       <h1><span class="h1-primary">Chem</span><span class="h1-validator">&nbsp;&nbsp;Resolver</span></h1>
       <p>Resolve chemical identifiers via the PubChem REST API</p>
     </header>
@@ -54,6 +74,11 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + id).classList.add('active');
     document.querySelector('[data-tab="' + id + '"]').classList.add('active');
+  }
+  function toggleTheme() {
+    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('chem-resolver-theme', next);
   }
   </script>
 </body>
