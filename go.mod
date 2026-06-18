@@ -1,3 +1,3 @@
-module github.com/roncofaber/chem-resolver
+module github.com/roncofaber/chemres
 
 go 1.22

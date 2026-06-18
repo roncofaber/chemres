@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/roncofaber/chem-resolver/internal/resolver"
+	"github.com/roncofaber/chemres/internal/resolver"
 )
 
 const maxBatchFileSize = 5 << 20

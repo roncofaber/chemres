@@ -24,8 +24,8 @@ Opens on [http://localhost:8080](http://localhost:8080). Set `PORT` to change th
 ## Running with Docker
 
 ```sh
-docker build -t chem-resolver .
-docker run -p 8080:8080 chem-resolver
+docker build -t chemres .
+docker run -p 8080:8080 chemres
 ```
 
 ## Deployment

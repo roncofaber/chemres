@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/roncofaber/chem-resolver/internal/resolver"
+	"github.com/roncofaber/chemres/internal/resolver"
 )
 
 type ExportHandler struct {
