@@ -636,7 +636,8 @@ input[type="file"] {
   pointer-events: none;
 }
 
-.htmx-request .input-spinner {
+.htmx-request .input-spinner,
+.input-spinner.htmx-request {
   display: block;
   animation: spin 0.7s linear infinite;
 }

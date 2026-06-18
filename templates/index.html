@@ -56,7 +56,7 @@
             hx-post="/resolve"
             hx-target="#lookup-result"
             hx-swap="innerHTML"
-            hx-indicator="#lookup-indicator"
+            hx-indicator="#lookup-indicator, #lookup-resolve-spinner"
             hx-on:submit="document.getElementById('lookup-reset').style.display='flex';
                           document.getElementById('lookup-suggestions').innerHTML='';">
         <label for="lookup-input">Chemical Identifier</label>
@@ -77,9 +77,10 @@
                    onblur="setTimeout(function(){document.getElementById('lookup-suggestions').innerHTML=''},200)">
             <div id="lookup-suggestions" class="suggest-dropdown"></div>
             <div class="input-spinner" id="lookup-suggest-spinner"></div>
+            <div class="input-spinner" id="lookup-resolve-spinner"></div>
           </div>
           <button class="btn" type="submit">Resolve</button>
-          <span id="lookup-indicator" class="indicator">Resolving</span>
+          <span id="lookup-indicator" class="indicator" aria-live="polite">Resolving</span>
         </div>
       </form>
       <div id="lookup-result"></div>
