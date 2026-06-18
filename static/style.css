@@ -2,7 +2,7 @@
    chem-resolver — Deep Lab Dark  (+ light theme via data-theme)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Fira+Code:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
 
 /* ── Light theme (default) ───────────────────────────────────── */
 :root {
@@ -42,7 +42,7 @@
 
   --font-sans:    'DM Sans', system-ui, sans-serif;
   --font-mono:    'Fira Code', 'Courier New', monospace;
-  --font-display: var(--font-mono);
+  --font-display: 'Syne', sans-serif;
 
   --radius:    3px;
   --radius-lg: 5px;
@@ -168,22 +168,20 @@ body {
 }
 
 .site-header h1 {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: 2.1rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin-bottom: 0.4rem;
   line-height: 1;
 }
 
 .h1-primary {
   color: var(--accent);
-  font-weight: 500;
 }
 
 .h1-validator {
   color: var(--text-muted);
-  font-weight: 400;
 }
 
 .site-header p {
