@@ -56,8 +56,8 @@
   --accent-glow-btn:     rgba(8,145,178,0.15);
   --accent-bg-subtle:    rgba(8,145,178,0.08);
   --accent-bg-faint:     rgba(8,145,178,0.05);
-  --dot-color:           rgba(8,145,178,0.05);
-  --top-glow:            rgba(8,145,178,0.04);
+  --dot-color:           rgba(8,145,178,0.12);
+  --top-glow:            rgba(8,145,178,0.06);
   --surface-highlight:   rgba(0,0,0,0.03);
   --row-divider:         rgba(0,0,0,0.05);
   --found-glow-near:     rgba(5,150,105,0.12);
@@ -529,9 +529,9 @@ input[type="file"] {
 
 .result-fields td:first-child {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
   white-space: nowrap;
@@ -593,7 +593,7 @@ input[type="file"] {
 /* ── Input row (input + button inline) ───────────────────────── */
 .input-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0.5rem;
   margin-bottom: 0.9rem;
 }
@@ -606,6 +606,11 @@ input[type="file"] {
 .input-row .input-wrap {
   flex: 1;
   margin-bottom: 0;
+}
+
+.input-row .btn {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* ── Autocomplete ────────────────────────────────────────────── */
