@@ -6,9 +6,7 @@
 {{else}}
 <div class="result-box valid">
   {{if .Canonical}}
-  <div class="structure-wrap" id="sw-{{.CID}}" style="display:none">
-    <svg id="sd-{{.CID}}" data-smiles="{{.Canonical}}"></svg>
-  </div>
+  <div class="structure-wrap" data-smiles="{{.Canonical}}" style="display:none"></div>
   {{end}}
   <table class="result-fields">
     <tr class="copyable-row">

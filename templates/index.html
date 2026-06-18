@@ -89,22 +89,27 @@
     var target = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var sw     = el.closest('.structure-wrap');
     var theme  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    var drawer = new SmilesDrawer.SvgDrawer({
+    var opts   = {
       width: 200, height: 160,
       fontFamily: 'Fira Code, monospace',
       padding: 12,
       bondThickness: 1.4,
       isomeric: true,
       explicitHydrogens: false,
-    });
+    };
+    // v2 API: SmiDrawer.draw(tree, 'svg', theme, weights, callback) returns a new SVG element
+    var drawer = new SmilesDrawer.SmiDrawer(opts);
     SmilesDrawer.parse(target, function(tree) {
-      drawer.draw(tree, el.id, theme, false);
-      if (sw) sw.style.display = '';
+      drawer.draw(tree, 'svg', theme, null, function(svgEl) {
+        sw.innerHTML = '';
+        sw.appendChild(svgEl);
+        sw.style.display = '';
+      });
     }, function() { /* keep hidden on parse error */ });
   }
 
   document.addEventListener('htmx:afterSettle', function() {
-    document.querySelectorAll('[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
+    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
       el.setAttribute('data-sd-rendered', '1');
       drawStructure(el);
     });
