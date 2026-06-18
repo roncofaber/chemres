@@ -38,7 +38,7 @@
     <tr class="copyable-row">
       <td>CAS</td>
       <td>
-        <span class="field-value code-value">{{.CAS}}</span>
+        <a class="field-value code-value" href="https://commonchemistry.cas.org/detail?cas_rn={{.CAS}}" target="_blank" rel="noopener">{{.CAS}}</a>
         <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy CAS">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
