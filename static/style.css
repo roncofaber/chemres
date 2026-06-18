@@ -639,7 +639,12 @@ input[type="file"] {
 .htmx-request .input-spinner,
 .input-spinner.htmx-request {
   display: block;
-  animation: spin 0.7s linear infinite;
+  animation: spin-input 0.7s linear infinite;
+}
+
+@keyframes spin-input {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to   { transform: translateY(-50%) rotate(360deg); }
 }
 
 .suggest-dropdown {
