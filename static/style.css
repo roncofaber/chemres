@@ -672,7 +672,10 @@ input[type="file"] {
   transition: background 0.1s;
 }
 
-.suggest-item:hover { background: var(--border); }
+.suggest-item:hover,
+.suggest-item--active { background: var(--border); }
+
+.suggest-item--active .suggest-name { color: var(--text); }
 
 .suggest-code {
   font-family: var(--font-mono);

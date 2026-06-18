@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/roncofaber/chem-resolver/internal/handlers"
 	"github.com/roncofaber/chem-resolver/internal/resolver"
@@ -27,8 +28,12 @@ func main() {
 		tmpl.ExecuteTemplate(w, "index.html", nil)
 	})
 
-	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server starting on :%s", port)
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
