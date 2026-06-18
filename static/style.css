@@ -362,11 +362,34 @@ input[type="text"]:focus {
 }
 
 input[type="file"] {
-  font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
   color: var(--text-muted);
   margin-bottom: 0.9rem;
   display: block;
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+  background: var(--surface2);
+  color: var(--text-muted);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-right: 0.6rem;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: var(--border);
+  color: var(--text);
+  border-color: var(--border-hi);
 }
 
 .hint {
