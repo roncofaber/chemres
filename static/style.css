@@ -590,6 +590,24 @@ input[type="file"] {
   100% { transform: translateX(350%); }
 }
 
+/* ── Input row (input + button inline) ───────────────────────── */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.input-row input[type="text"] {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.input-row .input-wrap {
+  flex: 1;
+  margin-bottom: 0;
+}
+
 /* ── Autocomplete ────────────────────────────────────────────── */
 .input-wrap {
   position: relative;

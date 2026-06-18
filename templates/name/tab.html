@@ -16,24 +16,24 @@
         hx-indicator="#name-single-indicator"
         hx-on:submit="document.getElementById('name-single-reset').style.display='flex';">
     <label for="name-input">Name or CAS</label>
-    <div class="input-wrap">
-      <input type="text" id="name-input" name="input"
-             placeholder="e.g. acetone or 67-64-1 or propan-2-one"
-             autocomplete="off" spellcheck="false"
-             hx-get="/name/suggest"
-             hx-trigger="input changed delay:300ms"
-             hx-target="#name-suggestions"
-             hx-swap="innerHTML"
-             hx-include="this"
-             hx-params="input"
-             hx-indicator="#name-suggest-spinner"
-             hx-on:htmx:after-swap="var d=document.getElementById('name-suggestions'); if(!d.textContent.trim()) d.innerHTML='';"
-             onclick="document.getElementById('name-suggestions').innerHTML=''"
-             onblur="setTimeout(function(){document.getElementById('name-suggestions').innerHTML=''},200)">
-      <div id="name-suggestions" class="suggest-dropdown"></div>
-      <div class="input-spinner" id="name-suggest-spinner"></div>
-    </div>
-    <div class="mt-sm">
+    <div class="input-row">
+      <div class="input-wrap">
+        <input type="text" id="name-input" name="input"
+               placeholder="e.g. acetone or 67-64-1 or propan-2-one"
+               autocomplete="off" spellcheck="false"
+               hx-get="/name/suggest"
+               hx-trigger="input changed delay:300ms"
+               hx-target="#name-suggestions"
+               hx-swap="innerHTML"
+               hx-include="this"
+               hx-params="input"
+               hx-indicator="#name-suggest-spinner"
+               hx-on:htmx:after-swap="var d=document.getElementById('name-suggestions'); if(!d.textContent.trim()) d.innerHTML='';"
+               onclick="document.getElementById('name-suggestions').innerHTML=''"
+               onblur="setTimeout(function(){document.getElementById('name-suggestions').innerHTML=''},200)">
+        <div id="name-suggestions" class="suggest-dropdown"></div>
+        <div class="input-spinner" id="name-suggest-spinner"></div>
+      </div>
       <button class="btn" type="submit">Resolve</button>
       <span id="name-single-indicator" class="indicator">Resolving</span>
     </div>

@@ -16,10 +16,10 @@
         hx-indicator="#smiles-single-indicator"
         hx-on:submit="document.getElementById('smiles-single-reset').style.display='flex';">
     <label for="smiles-input">SMILES</label>
-    <input type="text" id="smiles-input" name="input"
-           placeholder="e.g. CC(=O)C or c1ccccc1"
-           autocomplete="off" spellcheck="false">
-    <div class="mt-sm">
+    <div class="input-row">
+      <input type="text" id="smiles-input" name="input"
+             placeholder="e.g. CC(=O)C or c1ccccc1"
+             autocomplete="off" spellcheck="false">
       <button class="btn" type="submit">Resolve</button>
       <span id="smiles-single-indicator" class="indicator">Resolving</span>
     </div>
