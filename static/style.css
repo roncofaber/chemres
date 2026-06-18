@@ -46,7 +46,7 @@
 
   --radius:    3px;
   --radius-lg: 5px;
-  --shadow:    0 1px 4px rgba(0,0,0,0.08);
+  --shadow:    0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.08);
   --shadow-md: 0 8px 32px rgba(0,0,0,0.12);
 
   /* ── Derived / semantic (all rgba values live here) ── */
@@ -63,7 +63,7 @@
   --found-glow-near:     rgba(5,150,105,0.12);
   --found-glow-far:      rgba(5,150,105,0.05);
   --invalid-glow:        rgba(220,38,38,0.10);
-  --structure-bg:        #edf2f7;
+  --structure-bg:        #ffffff;
 }
 
 /* ── Dark theme override ─────────────────────────────────────── */
@@ -118,7 +118,7 @@
   --found-glow-near:     rgba(5,150,105,0.10);
   --found-glow-far:      rgba(5,150,105,0.08);
   --invalid-glow:        rgba(153,27,27,0.15);
-  --structure-bg:        #d8e8f0;
+  --structure-bg:        #ffffff;
 }
 
 /* ── Reset ───────────────────────────────────────────────────── */
