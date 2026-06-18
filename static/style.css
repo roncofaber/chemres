@@ -963,6 +963,30 @@ details summary::-webkit-details-marker { display: none; }
   min-width: 0;
 }
 
+/* Narrow screens: stack vertically, structure moves below fields */
+@media (max-width: 520px) {
+  .result-body {
+    flex-direction: column;
+  }
+
+  .structure-wrap {
+    align-self: center;
+  }
+
+  .input-row {
+    flex-wrap: wrap;
+  }
+
+  .input-row .input-wrap {
+    width: 100%;
+  }
+
+  .input-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ── Structure image (specimen on substrate) ─────────────────── */
 .structure-wrap {
   flex-shrink: 0;
