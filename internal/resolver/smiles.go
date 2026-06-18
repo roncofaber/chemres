@@ -30,6 +30,10 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 		result.Error = "Not found in PubChem"
 		return result, nil
 	}
+	if err == errBadInput {
+		result.Error = "Invalid SMILES — not recognized by PubChem"
+		return result, nil
+	}
 	if err != nil {
 		return result, err
 	}
@@ -39,6 +43,10 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	}
 
 	p := props.PropertyTable.Properties[0]
+	if p.CID == 0 {
+		result.Error = "Not found in PubChem"
+		return result, nil
+	}
 	result.CID       = p.CID
 	result.IUPAC     = p.IUPACName
 	result.Canonical = p.CanonicalSMILES

@@ -17,6 +17,7 @@ const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
 
 var errNotFound = errors.New("not found")
+var errBadInput  = errors.New("bad input")
 var casRE = regexp.MustCompile(`^\d+-\d+-\d+$`)
 
 type pubchemClient struct {
@@ -88,6 +89,9 @@ func (c *pubchemClient) fetchProperties(namespace, identifier string, namespaceI
 
 	if resp.StatusCode == http.StatusNotFound {
 		return propertyResponse{}, errNotFound
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return propertyResponse{}, errBadInput
 	}
 	if resp.StatusCode != http.StatusOK {
 		return propertyResponse{}, fmt.Errorf("pubchem returned %d", resp.StatusCode)
