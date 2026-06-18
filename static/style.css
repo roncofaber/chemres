@@ -628,12 +628,12 @@ input[type="file"] {
   z-index: 100;
   background: var(--surface2);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md), 0 0 0 1px var(--border-mid);
   overflow: hidden;
 }
 
 .suggest-dropdown:not(:empty) {
   border: 1px solid var(--border-mid);
+  box-shadow: var(--shadow-md);
 }
 
 .suggest-list {
