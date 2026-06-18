@@ -4,9 +4,9 @@
   {{range .}}
   <li class="suggest-item"
       onmousedown="event.preventDefault();
-                   document.getElementById('name-input').value='{{.}}';
-                   document.getElementById('name-suggestions').innerHTML='';
-                   document.getElementById('name-single-form').requestSubmit();">
+                   document.getElementById('lookup-input').value='{{.}}';
+                   document.getElementById('lookup-suggestions').innerHTML='';
+                   document.getElementById('lookup-form').requestSubmit();">
     <span class="suggest-name">{{.}}</span>
   </li>
   {{end}}

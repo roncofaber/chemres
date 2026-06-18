@@ -11,7 +11,6 @@
     (function(){
       var t=localStorage.getItem('chem-resolver-theme')||
             (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-      /* default is light — only set attribute when dark to avoid overriding :root */
       document.documentElement.setAttribute('data-theme',t);
     })();
   </script>
@@ -22,7 +21,6 @@
 <body>
   <div class="page-wrap">
     <header class="site-header">
-      <!-- Aromatic ring decoration (delocalized benzene symbol) -->
       <svg class="site-header-hex" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
         <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
         <circle cx="50" cy="50" r="24" stroke-width="1"/>
@@ -43,22 +41,82 @@
       <p>Resolve chemical identifiers via the PubChem REST API</p>
     </header>
 
-    <div class="tab-bar">
-      {{range $i, $r := .Resolvers}}
-      <button class="tab-btn{{if eq $i 0}} active{{end}}"
-              data-tab="{{$r.SystemID}}"
-              onclick="switchTab('{{$r.SystemID}}')">
-        {{$r.Name}}
+    <section class="card">
+      <p class="card-title">Single Lookup</p>
+      <button class="card-reset" id="lookup-reset" aria-label="Clear"
+              onclick="document.getElementById('lookup-form').reset();
+                       document.getElementById('lookup-result').innerHTML='';
+                       document.getElementById('lookup-suggestions').innerHTML='';
+                       this.style.display='none';"
+              style="display:none">
+        {{template "icon/rotate-ccw" .}}
+        Clear
       </button>
-      {{end}}
-    </div>
+      <form id="lookup-form"
+            hx-post="/resolve"
+            hx-target="#lookup-result"
+            hx-swap="innerHTML"
+            hx-indicator="#lookup-indicator"
+            hx-on:submit="document.getElementById('lookup-reset').style.display='flex';
+                          document.getElementById('lookup-suggestions').innerHTML='';">
+        <label for="lookup-input">Chemical Identifier</label>
+        <div class="input-row">
+          <div class="input-wrap">
+            <input type="text" id="lookup-input" name="input"
+                   placeholder="e.g. CCO · acetone · 64-17-5 · LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
+                   autocomplete="off" spellcheck="false"
+                   hx-get="/suggest"
+                   hx-trigger="input changed delay:300ms"
+                   hx-target="#lookup-suggestions"
+                   hx-swap="innerHTML"
+                   hx-include="this"
+                   hx-params="input"
+                   hx-indicator="#lookup-suggest-spinner"
+                   hx-on:htmx:after-swap="var d=document.getElementById('lookup-suggestions'); if(!d.textContent.trim()) d.innerHTML='';"
+                   onclick="document.getElementById('lookup-suggestions').innerHTML=''"
+                   onblur="setTimeout(function(){document.getElementById('lookup-suggestions').innerHTML=''},200)">
+            <div id="lookup-suggestions" class="suggest-dropdown"></div>
+            <div class="input-spinner" id="lookup-suggest-spinner"></div>
+          </div>
+          <button class="btn" type="submit">Resolve</button>
+          <span id="lookup-indicator" class="indicator">Resolving</span>
+        </div>
+      </form>
+      <div id="lookup-result"></div>
+    </section>
 
-    {{range $i, $r := .Resolvers}}
-    <div id="tab-{{$r.SystemID}}" class="tab-panel{{if eq $i 0}} active{{end}}">
-      {{if eq $r.SystemID "smiles"}}{{template "smiles/tab.html" $r}}{{end}}
-      {{if eq $r.SystemID "name"}}{{template "name/tab.html" $r}}{{end}}
-    </div>
-    {{end}}
+    <section class="card">
+      <p class="card-title">Batch</p>
+      <button class="card-reset" id="batch-reset" aria-label="Clear"
+              onclick="document.getElementById('batch-form').reset();
+                       document.getElementById('batch-result').innerHTML='';
+                       this.style.display='none';"
+              style="display:none">
+        {{template "icon/rotate-ccw" .}}
+        Clear
+      </button>
+      <form id="batch-form"
+            hx-post="/batch"
+            hx-target="#batch-result"
+            hx-swap="innerHTML"
+            hx-indicator="#batch-indicator, #batch-progress"
+            hx-encoding="multipart/form-data"
+            hx-on:submit="document.getElementById('batch-reset').style.display='flex';
+                          document.getElementById('batch-result').innerHTML='';">
+        <label for="batch-inputs">Identifiers (one per line)</label>
+        <textarea id="batch-inputs" name="inputs" rows="5"
+                  placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
+                  spellcheck="false"></textarea>
+        <p class="hint">Accepts SMILES, names, CAS numbers, and InChIKeys. Or upload a plain text file:</p>
+        <input type="file" name="file" accept=".txt,.csv">
+        <div>
+          <button class="btn" type="submit">Resolve All</button>
+          <span id="batch-indicator" class="indicator">Processing</span>
+        </div>
+      </form>
+      <div class="progress-bar" id="batch-progress"></div>
+      <div id="batch-result"></div>
+    </section>
   </div>
 
   <!-- Structure modal -->
@@ -93,13 +151,6 @@
   </footer>
 
   <script>
-  function switchTab(id) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + id).classList.add('active');
-    document.querySelector('[data-tab="' + id + '"]').classList.add('active');
-  }
-
   function toggleTheme() {
     var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
@@ -165,7 +216,6 @@
       el.innerHTML = '';
       el.appendChild(svgEl);
 
-      // Download button
       var dlBtn = document.createElement('button');
       dlBtn.className = 'structure-dl';
       dlBtn.title = 'Download SVG';
@@ -176,8 +226,8 @@
       });
       el.appendChild(dlBtn);
 
-      el.style.display = '';
-      el.style.cursor  = 'zoom-in';
+      el.style.display  = '';
+      el.style.cursor   = 'zoom-in';
       el.addEventListener('click', function() { openStructureModal(smiles, name); });
     }, function() { /* keep hidden */ });
   }
