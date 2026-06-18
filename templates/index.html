@@ -108,8 +108,8 @@
                   placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
                   spellcheck="false"></textarea>
         <p class="hint">Accepts SMILES, names, CAS numbers, and InChIKeys. Or upload a plain text file:</p>
-        <input type="file" name="file" accept=".txt,.csv">
-        <div>
+        <div class="input-row">
+          <input type="file" name="file" accept=".txt,.csv" style="flex:1;margin-bottom:0;align-self:center">
           <button class="btn" type="submit">Resolve All</button>
           <span id="batch-indicator" class="indicator">Processing</span>
         </div>
