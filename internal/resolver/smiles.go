@@ -42,7 +42,13 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	result.CID       = p.CID
 	result.IUPAC     = p.IUPACName
 	result.Canonical = p.CanonicalSMILES
-	result.Isomeric  = p.IsomericSMILES
+	if result.Canonical == "" {
+		result.Canonical = p.SMILES
+	}
+	result.Isomeric = p.IsomericSMILES
+	if result.Isomeric == "" {
+		result.Isomeric = p.ConnectivitySMILES
+	}
 	result.Formula   = p.MolecularFormula
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey

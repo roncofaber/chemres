@@ -14,7 +14,7 @@ import (
 )
 
 const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES"
+const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
 
 var errNotFound = errors.New("not found")
 var casRE = regexp.MustCompile(`^\d+-\d+-\d+$`)
@@ -32,13 +32,15 @@ func newPubchemClient() *pubchemClient {
 }
 
 type propertyRow struct {
-	CID              int    `json:"CID"`
-	IUPACName        string `json:"IUPACName"`
-	MolecularFormula string `json:"MolecularFormula"`
-	MolecularWeight  string `json:"MolecularWeight"`
-	InChIKey         string `json:"InChIKey"`
-	CanonicalSMILES  string `json:"CanonicalSMILES"`
-	IsomericSMILES   string `json:"IsomericSMILES"`
+	CID                  int    `json:"CID"`
+	IUPACName            string `json:"IUPACName"`
+	MolecularFormula     string `json:"MolecularFormula"`
+	MolecularWeight      string `json:"MolecularWeight"`
+	InChIKey             string `json:"InChIKey"`
+	CanonicalSMILES      string `json:"CanonicalSMILES"`
+	IsomericSMILES       string `json:"IsomericSMILES"`
+	SMILES               string `json:"SMILES"`
+	ConnectivitySMILES   string `json:"ConnectivitySMILES"`
 }
 
 type propertyTable struct {

@@ -10,7 +10,7 @@ import (
 
 func TestFetchProperties_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		want := "/compound/smiles/property/IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES/JSON"
+		want := "/compound/smiles/property/IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES/JSON"
 		if r.URL.Path != want {
 			http.Error(w, "unexpected path: "+r.URL.Path, 404)
 			return
