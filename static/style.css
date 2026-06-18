@@ -936,17 +936,9 @@ details summary::-webkit-details-marker { display: none; }
   letter-spacing: 0.04em;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0 1.25rem;
-}
-
-.site-footer > * + * { position: relative; }
-.site-footer > * + *::before {
-  content: '·';
-  position: absolute;
-  left: -0.75rem;
-  color: var(--border-mid);
-  pointer-events: none;
+  gap: 0.5rem 0;
 }
 
 .site-footer a {
