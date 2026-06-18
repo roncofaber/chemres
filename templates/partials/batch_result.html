@@ -1,0 +1,47 @@
+{{if .Error}}
+<div class="result-box error mt-md">
+  <span class="status-badge error-tag">Error</span>
+  <p>{{.Error}}</p>
+</div>
+{{else}}
+<div class="mt-md">
+  <div class="summary-bar">
+    <span class="summary-pill valid">{{.Summary.Found}} found</span>
+    <span class="summary-pill invalid">{{.Summary.NotFound}} not found</span>
+    {{if .Summary.Errors}}<span class="summary-pill warn">{{.Summary.Errors}} errors</span>{{end}}
+    <span class="summary-pill neutral">{{.Summary.Total}} total</span>
+    <form method="post" action="/export" class="ml-auto">
+      <input type="hidden" name="results" value="{{.ResultsJSON}}">
+      <input type="hidden" name="system" value="{{.SystemID}}">
+      <button class="btn btn-sm" type="submit">↓ Export CSV</button>
+    </form>
+  </div>
+  <div class="batch-table-wrap">
+    <table class="batch-table">
+      <thead>
+        <tr>
+          <th>Input</th>
+          <th>Status</th>
+          <th>IUPAC</th>
+          <th>Formula</th>
+          <th>CAS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Results}}
+        <tr>
+          <td class="col-code">{{.Input}}</td>
+          <td>
+            {{if .Error}}<span class="chip error-tag">Error</span>
+            {{else}}<span class="chip valid">Found</span>{{end}}
+          </td>
+          <td class="col-name">{{.IUPAC}}</td>
+          <td class="col-code">{{.Formula}}</td>
+          <td class="col-code">{{.CAS}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}

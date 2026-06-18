@@ -1,0 +1,54 @@
+{{if .Error}}
+<div class="result-box error">
+  <span class="status-badge error-tag">Error</span>
+  <p>{{.Error}}</p>
+</div>
+{{else}}
+<div class="result-box valid">
+  <span class="status-badge valid">Found</span>
+  {{if .SVG}}
+  <div class="structure-wrap">{{.SVG}}</div>
+  {{end}}
+  <table class="result-fields">
+    <tr><td>IUPAC</td><td>{{.IUPAC}}</td></tr>
+    <tr><td>Formula</td><td class="code-value">{{.Formula}}</td></tr>
+    <tr><td>MW</td><td>{{.MW}}</td></tr>
+    {{if .CAS}}<tr><td>CAS</td><td class="code-value">{{.CAS}}</td></tr>{{end}}
+    <tr><td>InChIKey</td><td class="code-value">{{.InChIKey}}</td></tr>
+    <tr class="copyable-row">
+      <td>SMILES</td>
+      <td>
+        <span class="field-value code-value">{{.Canonical}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy SMILES">
+          {{template "icon/copy" .}}
+          {{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    {{if ne .Isomeric .Canonical}}
+    <tr class="copyable-row">
+      <td>Isomeric</td>
+      <td>
+        <span class="field-value code-value">{{.Isomeric}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy isomeric SMILES">
+          {{template "icon/copy" .}}
+          {{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    {{end}}
+    <tr><td>CID</td><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a></td></tr>
+    <tr><td>Resolved</td><td>{{.ResolvedAt.Format "2006-01-02 15:04:05 UTC"}}</td></tr>
+  </table>
+</div>
+
+<script>
+htmx.process(document.currentScript.parentElement);
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text.trim()).then(function() {
+    btn.classList.add('copy-btn--done');
+    setTimeout(function() { btn.classList.remove('copy-btn--done'); }, 1500);
+  });
+}
+</script>
+{{end}}

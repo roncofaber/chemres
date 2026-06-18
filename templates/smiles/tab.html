@@ -1,0 +1,62 @@
+{{define "smiles/tab.html"}}
+<section class="card">
+  <p class="card-title">Single Lookup</p>
+  <button class="card-reset" id="smiles-single-reset" aria-label="Clear"
+          onclick="document.getElementById('smiles-single-form').reset();
+                   document.getElementById('smiles-result').innerHTML='';
+                   this.style.display='none';"
+          style="display:none">
+    {{template "icon/rotate-ccw" .}}
+    Clear
+  </button>
+  <form id="smiles-single-form"
+        hx-post="/smiles/resolve"
+        hx-target="#smiles-result"
+        hx-swap="innerHTML"
+        hx-indicator="#smiles-single-indicator"
+        hx-on:submit="document.getElementById('smiles-single-reset').style.display='flex';">
+    <label for="smiles-input">SMILES</label>
+    <input type="text" id="smiles-input" name="input"
+           placeholder="e.g. CC(=O)C or c1ccccc1"
+           autocomplete="off" spellcheck="false">
+    <div class="mt-sm">
+      <button class="btn" type="submit">Resolve</button>
+      <span id="smiles-single-indicator" class="indicator">Resolving</span>
+    </div>
+  </form>
+  <div id="smiles-result"></div>
+</section>
+
+<section class="card">
+  <p class="card-title">Batch</p>
+  <button class="card-reset" id="smiles-batch-reset" aria-label="Clear"
+          onclick="document.getElementById('smiles-batch-form').reset();
+                   document.getElementById('smiles-batch-result').innerHTML='';
+                   this.style.display='none';"
+          style="display:none">
+    {{template "icon/rotate-ccw" .}}
+    Clear
+  </button>
+  <form id="smiles-batch-form"
+        hx-post="/smiles/batch"
+        hx-target="#smiles-batch-result"
+        hx-swap="innerHTML"
+        hx-indicator="#smiles-batch-indicator, #smiles-batch-progress"
+        hx-encoding="multipart/form-data"
+        hx-on:submit="document.getElementById('smiles-batch-reset').style.display='flex';
+                      document.getElementById('smiles-batch-result').innerHTML='';">
+    <label for="smiles-inputs">SMILES (one per line)</label>
+    <textarea id="smiles-inputs" name="inputs" rows="5"
+              placeholder="CC(=O)C&#10;c1ccccc1&#10;CCO"
+              spellcheck="false"></textarea>
+    <p class="hint">Or upload a plain text file:</p>
+    <input type="file" name="file" accept=".txt,.csv">
+    <div>
+      <button class="btn" type="submit">Resolve All</button>
+      <span id="smiles-batch-indicator" class="indicator">Processing</span>
+    </div>
+  </form>
+  <div class="progress-bar" id="smiles-batch-progress"></div>
+  <div id="smiles-batch-result"></div>
+</section>
+{{end}}
