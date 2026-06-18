@@ -92,29 +92,6 @@
 
 <script>
 htmx.process(document.currentScript.parentElement);
-(function() {
-  var wrap = document.currentScript.parentElement;
-  var el   = wrap.querySelector('[data-smiles]');
-  if (!el || typeof SmilesDrawer === 'undefined') return;
-  // For salts/mixtures (dot notation), draw the largest component only
-  var smiles = el.getAttribute('data-smiles');
-  var parts  = smiles.split('.');
-  var target = parts.reduce(function(a, b) { return a.length >= b.length ? a : b; });
-  var sw     = document.getElementById(el.id.replace('sd-', 'sw-'));
-  var theme  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  var drawer = new SmilesDrawer.SvgDrawer({
-    width: 200, height: 160,
-    fontFamily: 'Fira Code, monospace',
-    padding: 12,
-    bondThickness: 1.4,
-    isomeric: true,
-    explicitHydrogens: false,
-  });
-  SmilesDrawer.parse(target, function(tree) {
-    drawer.draw(tree, el.id, theme, false);
-    if (sw) sw.style.display = '';
-  }, function() { /* hide on error — sw stays display:none */ });
-})();
 function copyText(btn, text) {
   navigator.clipboard.writeText(text.trim()).then(function() {
     btn.classList.add('copy-btn--done');

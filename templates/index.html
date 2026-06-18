@@ -81,6 +81,34 @@
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('chem-resolver-theme', next);
   }
+
+  function drawStructure(el) {
+    if (!el || typeof SmilesDrawer === 'undefined') return;
+    var smiles = el.getAttribute('data-smiles');
+    // For salts/mixtures (dot notation) draw the largest component
+    var target = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
+    var sw     = el.closest('.structure-wrap');
+    var theme  = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    var drawer = new SmilesDrawer.SvgDrawer({
+      width: 200, height: 160,
+      fontFamily: 'Fira Code, monospace',
+      padding: 12,
+      bondThickness: 1.4,
+      isomeric: true,
+      explicitHydrogens: false,
+    });
+    SmilesDrawer.parse(target, function(tree) {
+      drawer.draw(tree, el.id, theme, false);
+      if (sw) sw.style.display = '';
+    }, function() { /* keep hidden on parse error */ });
+  }
+
+  document.addEventListener('htmx:afterSettle', function() {
+    document.querySelectorAll('[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
+      el.setAttribute('data-sd-rendered', '1');
+      drawStructure(el);
+    });
+  });
   </script>
 </body>
 </html>
