@@ -1109,6 +1109,8 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 0.3rem;
   padding-top: 0.6rem;
+  max-height: 110px;
+  overflow-y: auto;
 }
 
 .synonym-tag {
