@@ -10,18 +10,59 @@
   <div class="structure-wrap">{{.SVG}}</div>
   {{end}}
   <table class="result-fields">
-    <tr><td>IUPAC</td><td>{{.IUPAC}}</td></tr>
-    <tr><td>Formula</td><td class="code-value">{{.Formula}}</td></tr>
-    <tr><td>MW</td><td>{{.MW}}</td></tr>
-    {{if .CAS}}<tr><td>CAS</td><td class="code-value">{{.CAS}}</td></tr>{{end}}
-    <tr><td>InChIKey</td><td class="code-value">{{.InChIKey}}</td></tr>
+    <tr class="copyable-row">
+      <td>IUPAC</td>
+      <td>
+        <span class="field-value">{{.IUPAC}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy IUPAC">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    <tr class="copyable-row">
+      <td>Formula</td>
+      <td>
+        <span class="field-value code-value">{{.Formula}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy formula">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    <tr class="copyable-row">
+      <td>MW</td>
+      <td>
+        <span class="field-value">{{.MW}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy MW">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    {{if .CAS}}
+    <tr class="copyable-row">
+      <td>CAS</td>
+      <td>
+        <span class="field-value code-value">{{.CAS}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy CAS">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    {{end}}
+    <tr class="copyable-row">
+      <td>InChIKey</td>
+      <td>
+        <span class="field-value code-value">{{.InChIKey}}</span>
+        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy InChIKey">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
     <tr class="copyable-row">
       <td>SMILES</td>
       <td>
         <span class="field-value code-value">{{.Canonical}}</span>
         <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy SMILES">
-          {{template "icon/copy" .}}
-          {{template "icon/check" .}}
+          {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
     </tr>
@@ -31,14 +72,12 @@
       <td>
         <span class="field-value code-value">{{.Isomeric}}</span>
         <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy isomeric SMILES">
-          {{template "icon/copy" .}}
-          {{template "icon/check" .}}
+          {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
     </tr>
     {{end}}
     <tr><td>CID</td><td><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a></td></tr>
-    <tr><td>Resolved</td><td>{{.ResolvedAt.Format "2006-01-02 15:04:05 UTC"}}</td></tr>
   </table>
 </div>
 

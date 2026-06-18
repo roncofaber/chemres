@@ -542,7 +542,7 @@ input[type="file"] {
 }
 
 .field-value {
-  flex: 1;
+  flex: none;
 }
 
 .copy-btn {
@@ -558,7 +558,7 @@ input[type="file"] {
   border-radius: 4px;
   color: var(--text-faint);
   cursor: pointer;
-  opacity: 0.25;
+  opacity: 0.45;
   transition: opacity 0.15s, color 0.15s, border-color 0.15s, background 0.15s;
 }
 
