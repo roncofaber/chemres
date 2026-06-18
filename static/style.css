@@ -532,7 +532,7 @@ input[type="file"] {
   color: var(--text-faint);
   white-space: nowrap;
   padding-right: 1.5rem;
-  width: 1%;
+  width: 6.5rem;
 }
 
 .result-fields td:last-child {
