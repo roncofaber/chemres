@@ -132,6 +132,12 @@
             </svg>
             SVG
           </button>
+          <button id="modal-png-btn" class="btn btn-sm btn-ghost">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
+              <rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/>
+            </svg>
+            PNG
+          </button>
           <button class="modal-close" onclick="closeStructureModal()">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
               <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
@@ -163,6 +169,35 @@
     return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   }
 
+  function copyAsPng(svgEl, btn) {
+    var src = new XMLSerializer().serializeToString(svgEl);
+    if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    var blob = new Blob([src], {type: 'image/svg+xml;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var img  = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      canvas.width  = img.naturalWidth  || 420;
+      canvas.height = img.naturalHeight || 360;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(function(pngBlob) {
+        navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob})]).then(function() {
+          var orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = orig; }, 1500);
+        }).catch(function() {
+          btn.textContent = 'Failed';
+          setTimeout(function() { btn.textContent = 'PNG'; }, 1500);
+        });
+      }, 'image/png');
+    };
+    img.src = url;
+  }
+
   function downloadSvg(svgEl, name) {
     var src = new XMLSerializer().serializeToString(svgEl);
     if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -189,7 +224,9 @@
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
     drawer.draw(largest, null, currentTheme(), function(svgEl) {
       cont.appendChild(svgEl);
+      var pngBtn = document.getElementById('modal-png-btn');
       document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
+      pngBtn.onclick = function() { copyAsPng(svgEl, pngBtn); };
     }, function() {
       cont.innerHTML = '<p style="color:var(--error-text);padding:1rem;font-family:var(--font-mono);font-size:0.8rem">Could not render structure.</p>';
     });
