@@ -511,6 +511,7 @@ input[type="file"] {
 .result-fields {
   border-collapse: collapse;
   width: 100%;
+  table-layout: fixed;
   margin-top: 0.25rem;
 }
 
@@ -537,6 +538,8 @@ input[type="file"] {
 .result-fields td:last-child {
   font-size: 0.88rem;
   color: var(--text);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .result-fields a {
@@ -713,9 +716,25 @@ input[type="file"] {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  overflow: hidden;
 }
 
-.field-value { flex: none; }
+.field-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Code values (SMILES, InChIKey, CAS…) — single line with ellipsis */
+.field-value.code-value {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Plain text values (IUPAC name) — wrap naturally */
+.field-value:not(.code-value) {
+  word-break: break-word;
+}
 
 .copy-btn {
   flex-shrink: 0;
