@@ -4,13 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chem Resolver</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
 <body>
   <div class="page-wrap">
     <header class="site-header">
+      <!-- Aromatic ring decoration (delocalized benzene symbol) -->
+      <svg class="site-header-hex" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
+        <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="24" stroke-width="1"/>
+      </svg>
       <h1><span class="h1-primary">Chem</span><span class="h1-validator">&nbsp;&nbsp;Resolver</span></h1>
       <p>Resolve chemical identifiers via the PubChem REST API</p>
     </header>
