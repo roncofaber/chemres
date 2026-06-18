@@ -132,9 +132,12 @@
             </svg>
             SVG
           </button>
-          <button id="modal-png-btn" class="btn btn-sm btn-ghost">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
+          <button id="modal-png-btn" class="btn btn-sm btn-ghost" style="min-width:4.5rem">
+            <svg class="png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
               <rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/>
+            </svg>
+            <svg class="png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;display:none">
+              <polyline points="2.5,8.5 6,12 13.5,4.5"/>
             </svg>
             PNG
           </button>
@@ -185,14 +188,18 @@
       ctx.drawImage(img, 0, 0);
       URL.revokeObjectURL(url);
       canvas.toBlob(function(pngBlob) {
-        navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob})]).then(function() {
-          var orig = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = orig; }, 1500);
-        }).catch(function() {
-          btn.textContent = 'Failed';
-          setTimeout(function() { btn.textContent = 'PNG'; }, 1500);
-        });
+        var icon  = btn.querySelector('.png-icon,.structure-png-icon');
+        var check = btn.querySelector('.png-check,.structure-png-check');
+        function flash() {
+          if (icon)  icon.style.display  = 'none';
+          if (check) check.style.display = 'block';
+          setTimeout(function() {
+            if (icon)  icon.style.display  = '';
+            if (check) check.style.display = 'none';
+          }, 1500);
+        }
+        navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob})])
+          .then(flash).catch(flash);
       }, 'image/png');
     };
     img.src = url;
@@ -264,6 +271,16 @@
         downloadSvg(svgEl, name);
       });
       el.appendChild(dlBtn);
+
+      var cpBtn = document.createElement('button');
+      cpBtn.className = 'structure-dl structure-dl--png';
+      cpBtn.title = 'Copy PNG';
+      cpBtn.innerHTML = '<svg class="structure-png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/></svg><svg class="structure-png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="2.5,8.5 6,12 13.5,4.5"/></svg>';
+      cpBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        copyAsPng(svgEl, cpBtn);
+      });
+      el.appendChild(cpBtn);
 
       el.style.display  = '';
       el.style.cursor   = 'zoom-in';

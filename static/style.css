@@ -1028,6 +1028,8 @@ details summary::-webkit-details-marker { display: none; }
 
 .structure-wrap:hover .structure-dl { opacity: 1; }
 
+.structure-dl--png { bottom: calc(0.4rem + 22px + 0.25rem); }
+
 .structure-dl:hover {
   color: var(--accent);
   border-color: var(--accent);
