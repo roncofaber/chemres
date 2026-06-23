@@ -65,6 +65,7 @@ type Store struct {
 
 func NewStore() *Store {
 	s := &Store{}
+	// Sweep goroutine runs for process lifetime; Store is a singleton.
 	go func() {
 		ticker := time.NewTicker(time.Minute)
 		for range ticker.C {
@@ -105,9 +106,11 @@ func (s *Store) sweepOnce() {
 		job := v.(*Job)
 		job.mu.Lock()
 		expired := now.Sub(job.created) > TTL
-		job.mu.Unlock()
 		if expired {
 			job.cancel()
+		}
+		job.mu.Unlock()
+		if expired {
 			s.jobs.Delete(k)
 		}
 		return true

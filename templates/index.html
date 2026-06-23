@@ -347,7 +347,6 @@
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.error) { hideBatchProgress(); showBatchError(res.error); return; }
-        var total = res.total;
         var es = new EventSource('/batch/stream?job=' + res.job);
 
         es.addEventListener('progress', function(ev) {

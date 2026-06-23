@@ -81,7 +81,12 @@ func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					summary.Found++
 				}
 			}
-			jsonBytes, _ := json.Marshal(snap.Results)
+			jsonBytes, err := json.Marshal(snap.Results)
+			if err != nil {
+				fmt.Fprintf(w, "event: error\ndata: Failed to encode results.\n\n")
+				flusher.Flush()
+				return
+			}
 			data := batchData{
 				Results:     snap.Results,
 				ResultsJSON: string(jsonBytes),
