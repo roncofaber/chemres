@@ -22,7 +22,8 @@ func (h *SuggestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(query) < 2 {
 		return
 	}
-	suggestions, err := h.resolver.Suggest(query)
+	ctx := resolver.WithClientIP(r.Context(), realClientIP(r))
+	suggestions, err := h.resolver.Suggest(ctx, query)
 	if err != nil || len(suggestions) == 0 {
 		return
 	}

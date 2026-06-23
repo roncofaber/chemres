@@ -84,7 +84,8 @@ func (h *BatchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, _ := h.resolver.Batch(inputs)
+	ctx := resolver.WithClientIP(r.Context(), realClientIP(r))
+	results, _ := h.resolver.Batch(ctx, inputs)
 
 	summary := batchSummary{Total: len(results)}
 	for _, res := range results {

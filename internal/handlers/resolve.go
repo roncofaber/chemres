@@ -35,7 +35,8 @@ func (h *ResolveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	res, err := h.resolver.Resolve(r.Context(), input)
+	ctx := resolver.WithClientIP(r.Context(), realClientIP(r))
+	res, err := h.resolver.Resolve(ctx, input)
 	if err != nil {
 		h.tmpl.ExecuteTemplate(w, "result.html", resultData{
 			CompoundResult: resolver.CompoundResult{Error: "Could not reach PubChem — please try again."},

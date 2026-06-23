@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
@@ -19,12 +20,12 @@ type stubResolver struct {
 
 func (s *stubResolver) SystemID() string { return "smiles" }
 func (s *stubResolver) Name() string     { return "SMILES" }
-func (s *stubResolver) Resolve(input string) (resolver.CompoundResult, error) {
+func (s *stubResolver) Resolve(ctx context.Context, input string) (resolver.CompoundResult, error) {
 	s.result.Input = input
 	return s.result, s.err
 }
-func (s *stubResolver) Suggest(_ string) ([]string, error) { return nil, nil }
-func (s *stubResolver) Batch(inputs []string) ([]resolver.CompoundResult, error) {
+func (s *stubResolver) Suggest(ctx context.Context, _ string) ([]string, error) { return nil, nil }
+func (s *stubResolver) Batch(ctx context.Context, inputs []string) ([]resolver.CompoundResult, error) {
 	results := make([]resolver.CompoundResult, len(inputs))
 	for i, in := range inputs {
 		res := s.result
