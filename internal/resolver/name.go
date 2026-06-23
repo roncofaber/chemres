@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"sync"
@@ -20,11 +21,11 @@ func NewNameResolver() Resolver {
 func (r *NameResolver) SystemID() string { return "name" }
 func (r *NameResolver) Name() string     { return "Name / CAS" }
 
-func (r *NameResolver) Resolve(input string) (CompoundResult, error) {
-	return r.resolve(input, true)
+func (r *NameResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
+	return r.resolve(ctx, input, true)
 }
 
-func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, error) {
+func (r *NameResolver) resolve(ctx context.Context, input string, fetchSVG bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
 	namespace := "name"
@@ -32,7 +33,7 @@ func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, err
 		namespace = "inchikey"
 	}
 
-	props, err := r.client.fetchProperties(namespace, input, false)
+	props, err := r.client.fetchProperties(ctx, namespace, input, false)
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
 		return result, nil
@@ -68,27 +69,27 @@ func (r *NameResolver) resolve(input string, fetchSVG bool) (CompoundResult, err
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey
 
-	if cas, syns, _ := r.client.fetchSynonyms(p.CID); cas != "" || len(syns) > 0 {
+	if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
 		result.CAS        = cas
 		result.Synonyms   = syns
 		result.CommonName = firstCommonName(syns)
 	}
 	if fetchSVG {
-		if svg, _ := r.client.fetchSVG(p.CID); svg != "" {
+		if svg, _ := r.client.fetchSVG(ctx, p.CID); svg != "" {
 			result.SVG = svg
 		}
 	}
 	return result, nil
 }
 
-func (r *NameResolver) Suggest(query string) ([]string, error) {
+func (r *NameResolver) Suggest(ctx context.Context, query string) ([]string, error) {
 	if len(strings.TrimSpace(query)) < 2 {
 		return nil, nil
 	}
-	return r.client.autocomplete(query, 10)
+	return r.client.autocomplete(ctx, query, 10)
 }
 
-func (r *NameResolver) Batch(inputs []string) ([]CompoundResult, error) {
+func (r *NameResolver) Batch(ctx context.Context, inputs []string) ([]CompoundResult, error) {
 	results := make([]CompoundResult, len(inputs))
 	sem := make(chan struct{}, batchWorkers)
 	var wg sync.WaitGroup
@@ -99,7 +100,7 @@ func (r *NameResolver) Batch(inputs []string) ([]CompoundResult, error) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(in, false)
+			res, err := r.resolve(ctx, in, false)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}

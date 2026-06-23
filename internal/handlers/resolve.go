@@ -35,7 +35,7 @@ func (h *ResolveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	res, err := h.resolver.Resolve(input)
+	res, err := h.resolver.Resolve(r.Context(), input)
 	if err != nil {
 		h.tmpl.ExecuteTemplate(w, "result.html", resultData{
 			CompoundResult: resolver.CompoundResult{Error: "Could not reach PubChem — please try again."},

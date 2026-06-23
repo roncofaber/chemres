@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"html/template"
 	"time"
 )
@@ -25,7 +26,7 @@ type CompoundResult struct {
 type Resolver interface {
 	SystemID() string
 	Name()     string
-	Resolve(input string) (CompoundResult, error)
-	Batch(inputs []string) ([]CompoundResult, error)
-	Suggest(query string) ([]string, error)
+	Resolve(ctx context.Context, input string) (CompoundResult, error)
+	Batch(ctx context.Context, inputs []string) ([]CompoundResult, error)
+	Suggest(ctx context.Context, query string) ([]string, error)
 }

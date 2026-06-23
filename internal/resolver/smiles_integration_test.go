@@ -2,11 +2,14 @@
 
 package resolver
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestSmilesResolver_Integration_Acetone(t *testing.T) {
 	r := NewSmilesResolver()
-	got, err := r.Resolve("CC(C)=O")
+	got, err := r.Resolve(context.Background(), "CC(C)=O")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +29,7 @@ func TestSmilesResolver_Integration_Acetone(t *testing.T) {
 
 func TestSmilesResolver_Integration_NotFound(t *testing.T) {
 	r := NewSmilesResolver()
-	_, err := r.Resolve("XXXXXXXXXX")
+	_, err := r.Resolve(context.Background(), "XXXXXXXXXX")
 	if err == nil {
 		t.Fatal("expected error for invalid SMILES")
 	}

@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -42,7 +43,7 @@ func TestNameResolver_Resolve(t *testing.T) {
 	defer srv.Close()
 
 	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	got, err := r.Resolve("acetone")
+	got, err := r.Resolve(context.Background(), "acetone")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +68,7 @@ func TestNameResolver_NotFound(t *testing.T) {
 	defer srv.Close()
 
 	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	got, err := r.Resolve("notacompound12345xyz")
+	got, err := r.Resolve(context.Background(), "notacompound12345xyz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +82,7 @@ func TestNameResolver_Batch(t *testing.T) {
 	defer srv.Close()
 
 	r := &NameResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	results, err := r.Batch([]string{"acetone", "acetone"})
+	results, err := r.Batch(context.Background(), []string{"acetone", "acetone"})
 	if err != nil {
 		t.Fatal(err)
 	}

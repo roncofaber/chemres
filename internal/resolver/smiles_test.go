@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -42,7 +43,7 @@ func TestSmilesResolver_Resolve(t *testing.T) {
 	defer srv.Close()
 
 	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	got, err := r.Resolve("CC(C)=O")
+	got, err := r.Resolve(context.Background(), "CC(C)=O")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +71,7 @@ func TestSmilesResolver_NotFound(t *testing.T) {
 	defer srv.Close()
 
 	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	got, err := r.Resolve("INVALID")
+	got, err := r.Resolve(context.Background(), "INVALID")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +85,7 @@ func TestSmilesResolver_Batch(t *testing.T) {
 	defer srv.Close()
 
 	r := &SmilesResolver{client: &pubchemClient{baseURL: srv.URL, autocompleteBase: srv.URL, http: srv.Client()}}
-	results, err := r.Batch([]string{"CC(C)=O", "CC(C)=O"})
+	results, err := r.Batch(context.Background(), []string{"CC(C)=O", "CC(C)=O"})
 	if err != nil {
 		t.Fatal(err)
 	}

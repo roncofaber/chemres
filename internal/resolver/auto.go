@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"strings"
 	"sync"
 	"time"
@@ -68,35 +69,35 @@ func NewAutoResolver() Resolver {
 func (r *AutoResolver) SystemID() string { return "auto" }
 func (r *AutoResolver) Name() string     { return "Chemical Identifier" }
 
-func (r *AutoResolver) resolve(input string, fetchSVG bool) (CompoundResult, error) {
+func (r *AutoResolver) resolve(ctx context.Context, input string, fetchSVG bool) (CompoundResult, error) {
 	// Unambiguous exact identifiers
 	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
-		return r.name.resolve(input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG)
 	}
 
 	// Confident SMILES
 	if looksLikeSMILES(input) {
-		return r.smiles.resolve(input, fetchSVG)
+		return r.smiles.resolve(ctx, input, fetchSVG)
 	}
 
 	// Confident name (has chars outside the SMILES alphabet, or spaces)
 	if hasNonSmilesChar(input) {
-		return r.name.resolve(input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG)
 	}
 
 	// Ambiguous (e.g. "CO", "NO") — try SMILES, fall back to name on 400
-	result, err := r.smiles.resolve(input, fetchSVG)
+	result, err := r.smiles.resolve(ctx, input, fetchSVG)
 	if err == errBadInput {
-		return r.name.resolve(input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG)
 	}
 	return result, err
 }
 
-func (r *AutoResolver) Resolve(input string) (CompoundResult, error) {
-	return r.resolve(input, true)
+func (r *AutoResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
+	return r.resolve(ctx, input, true)
 }
 
-func (r *AutoResolver) Batch(inputs []string) ([]CompoundResult, error) {
+func (r *AutoResolver) Batch(ctx context.Context, inputs []string) ([]CompoundResult, error) {
 	results := make([]CompoundResult, len(inputs))
 	sem := make(chan struct{}, batchWorkers)
 	var wg sync.WaitGroup
@@ -107,7 +108,7 @@ func (r *AutoResolver) Batch(inputs []string) ([]CompoundResult, error) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(in, false)
+			res, err := r.resolve(ctx, in, false)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}
@@ -118,10 +119,10 @@ func (r *AutoResolver) Batch(inputs []string) ([]CompoundResult, error) {
 	return results, nil
 }
 
-func (r *AutoResolver) Suggest(query string) ([]string, error) {
+func (r *AutoResolver) Suggest(ctx context.Context, query string) ([]string, error) {
 	// Suppress autocomplete for SMILES and exact identifiers
 	if looksLikeSMILES(query) || casRE.MatchString(query) || inchiKeyRE.MatchString(query) {
 		return nil, nil
 	}
-	return r.name.Suggest(query)
+	return r.name.Suggest(ctx, query)
 }

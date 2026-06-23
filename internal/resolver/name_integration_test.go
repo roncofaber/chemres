@@ -2,11 +2,14 @@
 
 package resolver
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestNameResolver_Integration_CommonName(t *testing.T) {
 	r := NewNameResolver()
-	got, err := r.Resolve("acetone")
+	got, err := r.Resolve(context.Background(), "acetone")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +26,7 @@ func TestNameResolver_Integration_CommonName(t *testing.T) {
 
 func TestNameResolver_Integration_CAS(t *testing.T) {
 	r := NewNameResolver()
-	got, err := r.Resolve("67-64-1")
+	got, err := r.Resolve(context.Background(), "67-64-1")
 	if err != nil {
 		t.Fatal(err)
 	}

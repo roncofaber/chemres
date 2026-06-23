@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -18,14 +19,14 @@ func NewSmilesResolver() Resolver {
 func (r *SmilesResolver) SystemID() string { return "smiles" }
 func (r *SmilesResolver) Name() string     { return "SMILES" }
 
-func (r *SmilesResolver) Resolve(input string) (CompoundResult, error) {
-	return r.resolve(input, true)
+func (r *SmilesResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
+	return r.resolve(ctx, input, true)
 }
 
-func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, error) {
+func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
-	props, err := r.client.fetchProperties("smiles", input, true)
+	props, err := r.client.fetchProperties(ctx, "smiles", input, true)
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
 		return result, nil
@@ -61,22 +62,22 @@ func (r *SmilesResolver) resolve(input string, fetchSVG bool) (CompoundResult, e
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey
 
-	if cas, syns, _ := r.client.fetchSynonyms(p.CID); cas != "" || len(syns) > 0 {
+	if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
 		result.CAS        = cas
 		result.Synonyms   = syns
 		result.CommonName = firstCommonName(syns)
 	}
 	if fetchSVG {
-		if svg, _ := r.client.fetchSVG(p.CID); svg != "" {
+		if svg, _ := r.client.fetchSVG(ctx, p.CID); svg != "" {
 			result.SVG = svg
 		}
 	}
 	return result, nil
 }
 
-func (r *SmilesResolver) Suggest(_ string) ([]string, error) { return nil, nil }
+func (r *SmilesResolver) Suggest(_ context.Context, _ string) ([]string, error) { return nil, nil }
 
-func (r *SmilesResolver) Batch(inputs []string) ([]CompoundResult, error) {
+func (r *SmilesResolver) Batch(ctx context.Context, inputs []string) ([]CompoundResult, error) {
 	results := make([]CompoundResult, len(inputs))
 	sem := make(chan struct{}, batchWorkers)
 	var wg sync.WaitGroup
@@ -87,7 +88,7 @@ func (r *SmilesResolver) Batch(inputs []string) ([]CompoundResult, error) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(in, false)
+			res, err := r.resolve(ctx, in, false)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}
