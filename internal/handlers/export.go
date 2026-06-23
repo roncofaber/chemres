@@ -49,15 +49,21 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 
 	cw := csv.NewWriter(w)
-	cw.Write([]string{"Input", "CID", "IUPAC", "Formula", "MW", "CAS", "InChIKey", "CanonicalSMILES", "IsomericSMILES", "Error"})
+	cw.Write([]string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "CAS", "InChIKey", "CanonicalSMILES", "IsomericSMILES", "ResolvedAt", "Error"})
 	for _, res := range results {
 		cid := ""
+		pubchemURL := ""
 		if res.CID != 0 {
 			cid = fmt.Sprintf("%d", res.CID)
+			pubchemURL = fmt.Sprintf("https://pubchem.ncbi.nlm.nih.gov/compound/%d", res.CID)
+		}
+		resolvedAt := ""
+		if !res.ResolvedAt.IsZero() {
+			resolvedAt = res.ResolvedAt.UTC().Format("2006-01-02T15:04:05Z")
 		}
 		cw.Write([]string{
-			res.Input, cid, res.IUPAC, res.Formula, res.MW,
-			res.CAS, res.InChIKey, res.Canonical, res.Isomeric, res.Error,
+			res.Input, cid, pubchemURL, res.IUPAC, res.CommonName, res.Formula, res.MW,
+			res.CAS, res.InChIKey, res.Canonical, res.Isomeric, resolvedAt, res.Error,
 		})
 	}
 	cw.Flush()

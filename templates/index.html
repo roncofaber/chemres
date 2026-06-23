@@ -227,7 +227,7 @@
 
     var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, 'light', function(svgEl) {
+    drawer.draw(largest, null, currentTheme(), function(svgEl) {
       cont.appendChild(svgEl);
       var pngBtn = document.getElementById('modal-png-btn');
       document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
@@ -254,9 +254,11 @@
     if (!el || typeof SmilesDrawer === 'undefined') return;
     var smiles  = el.getAttribute('data-smiles');
     var name    = el.getAttribute('data-name') || smiles;
+    var cid     = el.getAttribute('data-cid');
+    var dlName  = cid ? name + '_CID' + cid : name;
     var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, 'light', function(svgEl) {
+    drawer.draw(largest, null, currentTheme(), function(svgEl) {
       el.innerHTML = '';
       el.appendChild(svgEl);
 
@@ -266,7 +268,7 @@
       dlBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/></svg>';
       dlBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        downloadSvg(svgEl, name);
+        downloadSvg(svgEl, dlName);
       });
       el.appendChild(dlBtn);
 

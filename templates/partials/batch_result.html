@@ -24,7 +24,9 @@
           <th>Status</th>
           <th>IUPAC</th>
           <th>Formula</th>
+          <th>MW</th>
           <th>CAS</th>
+          <th>InChIKey</th>
         </tr>
       </thead>
       <tbody>
@@ -32,12 +34,14 @@
         <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}">
           <td class="col-code">{{.Input}}</td>
           <td class="col-status">
-            {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag">Error</span><button class="btn-retry" data-input="{{.Input}}" onclick="retryRow(this)" title="Retry">↺</button>{{end}}
+            {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag" title="{{.Error}}">Error</span><button class="btn-retry" data-input="{{.Input}}" onclick="retryRow(this)" title="Retry">↺</button>{{end}}
             {{else}}<span class="chip valid">Found</span>{{end}}
           </td>
           <td class="col-name">{{.IUPAC}}</td>
           <td class="col-code">{{.Formula}}</td>
+          <td class="col-code">{{.MW}}</td>
           <td class="col-code">{{.CAS}}</td>
+          <td class="col-code">{{.InChIKey}}</td>
         </tr>
         {{end}}
       </tbody>

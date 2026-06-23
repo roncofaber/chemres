@@ -83,9 +83,15 @@
         </button>
       </td>
     </tr>
+    {{if not .ResolvedAt.IsZero}}
+    <tr>
+      <td>Fetched</td>
+      <td><span class="field-value" style="font-size:0.78rem;color:var(--text-faint)">{{.ResolvedAt.UTC.Format "2006-01-02 15:04 UTC"}}</span></td>
+    </tr>
+    {{end}}
   </table>
   {{if .Canonical}}
-  <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" style="display:none"></div>
+  <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" style="display:none"></div>
   {{end}}
   </div>{{/* end result-body */}}
   {{if .Synonyms}}
