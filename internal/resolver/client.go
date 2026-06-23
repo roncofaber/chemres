@@ -83,7 +83,10 @@ func isTransient(statusCode int, err error) bool {
 		}
 		return false
 	}
-	return statusCode == http.StatusServiceUnavailable || (statusCode >= 500 && statusCode != http.StatusNotFound)
+	if statusCode >= 400 && statusCode < 500 {
+		return false
+	}
+	return statusCode >= 500
 }
 
 func (c *pubchemClient) do(ctx context.Context, req *http.Request) (*http.Response, error) {
@@ -276,7 +279,7 @@ func (c *pubchemClient) autocomplete(ctx context.Context, prefix string, limit i
 	}
 	resp, err := c.do(ctx, req)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
