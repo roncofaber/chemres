@@ -20,10 +20,10 @@ func (r *SmilesResolver) SystemID() string { return "smiles" }
 func (r *SmilesResolver) Name() string     { return "SMILES" }
 
 func (r *SmilesResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
-	return r.resolve(ctx, input, true)
+	return r.resolve(ctx, input, true, true)
 }
 
-func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG bool) (CompoundResult, error) {
+func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG bool, withSynonyms bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
 	props, err := r.client.fetchProperties(ctx, "smiles", input, true)
@@ -62,10 +62,12 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG boo
 	result.MW        = p.MolecularWeight
 	result.InChIKey  = p.InChIKey
 
-	if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
-		result.CAS        = cas
-		result.Synonyms   = syns
-		result.CommonName = firstCommonName(syns)
+	if withSynonyms {
+		if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
+			result.CAS        = cas
+			result.Synonyms   = syns
+			result.CommonName = firstCommonName(syns)
+		}
 	}
 	if fetchSVG {
 		if svg, _ := r.client.fetchSVG(ctx, p.CID); svg != "" {
@@ -88,7 +90,7 @@ func (r *SmilesResolver) Batch(ctx context.Context, inputs []string) ([]Compound
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false)
+			res, err := r.resolve(ctx, in, false, true)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}
@@ -97,4 +99,8 @@ func (r *SmilesResolver) Batch(ctx context.Context, inputs []string) ([]Compound
 	}
 	wg.Wait()
 	return results, nil
+}
+
+func (r *SmilesResolver) BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]CompoundResult, error) {
+	return r.Batch(ctx, inputs)
 }

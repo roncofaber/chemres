@@ -35,6 +35,17 @@ func (s *stubResolver) Batch(ctx context.Context, inputs []string) ([]resolver.C
 	return results, s.err
 }
 
+func (s *stubResolver) BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]resolver.CompoundResult, error) {
+	results := make([]resolver.CompoundResult, len(inputs))
+	for i, in := range inputs {
+		res := s.result
+		res.Input = in
+		results[i] = res
+		onResolve(i+1, len(inputs))
+	}
+	return results, s.err
+}
+
 func mustParseResultTemplate(t *testing.T) *template.Template {
 	t.Helper()
 	tmpl, err := template.New("result.html").Parse(

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -69,38 +70,32 @@ func NewAutoResolver() Resolver {
 func (r *AutoResolver) SystemID() string { return "auto" }
 func (r *AutoResolver) Name() string     { return "Chemical Identifier" }
 
-func (r *AutoResolver) resolve(ctx context.Context, input string, fetchSVG bool) (CompoundResult, error) {
-	// Unambiguous exact identifiers
+func (r *AutoResolver) resolve(ctx context.Context, input string, fetchSVG bool, withSynonyms bool) (CompoundResult, error) {
 	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
-		return r.name.resolve(ctx, input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
 	}
-
-	// Confident SMILES
 	if looksLikeSMILES(input) {
-		return r.smiles.resolve(ctx, input, fetchSVG)
+		return r.smiles.resolve(ctx, input, fetchSVG, withSynonyms)
 	}
-
-	// Confident name (has chars outside the SMILES alphabet, or spaces)
 	if hasNonSmilesChar(input) {
-		return r.name.resolve(ctx, input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
 	}
-
-	// Ambiguous (e.g. "CO", "NO") — try SMILES, fall back to name on 400
-	result, err := r.smiles.resolve(ctx, input, fetchSVG)
+	result, err := r.smiles.resolve(ctx, input, fetchSVG, withSynonyms)
 	if err == errBadInput {
-		return r.name.resolve(ctx, input, fetchSVG)
+		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
 	}
 	return result, err
 }
 
 func (r *AutoResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
-	return r.resolve(ctx, input, true)
+	return r.resolve(ctx, input, true, true)
 }
 
-func (r *AutoResolver) Batch(ctx context.Context, inputs []string) ([]CompoundResult, error) {
+func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]CompoundResult, error) {
 	results := make([]CompoundResult, len(inputs))
 	sem := make(chan struct{}, batchWorkers)
 	var wg sync.WaitGroup
+	var doneCount int32
 
 	for i, input := range inputs {
 		wg.Add(1)
@@ -108,15 +103,50 @@ func (r *AutoResolver) Batch(ctx context.Context, inputs []string) ([]CompoundRe
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false)
+			res, err := r.resolve(ctx, in, false, false)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}
 			results[idx] = res
+			n := int(atomic.AddInt32(&doneCount, 1))
+			onResolve(n, len(inputs))
 		}(i, input)
 	}
 	wg.Wait()
+
+	var cids []int
+	cidIdx := make(map[int][]int)
+	for i, res := range results {
+		if res.CID != 0 {
+			if _, seen := cidIdx[res.CID]; !seen {
+				cids = append(cids, res.CID)
+			}
+			cidIdx[res.CID] = append(cidIdx[res.CID], i)
+		}
+	}
+
+	if len(cids) > 0 {
+		synMap, err := r.name.client.fetchSynonymsBatch(ctx, cids)
+		if err == nil && synMap != nil {
+			for cid, idxs := range cidIdx {
+				entry, ok := synMap[cid]
+				if !ok {
+					continue
+				}
+				for _, i := range idxs {
+					results[i].CAS        = entry.CAS
+					results[i].Synonyms   = entry.Synonyms
+					results[i].CommonName = firstCommonName(entry.Synonyms)
+				}
+			}
+		}
+	}
+
 	return results, nil
+}
+
+func (r *AutoResolver) Batch(ctx context.Context, inputs []string) ([]CompoundResult, error) {
+	return r.BatchWithProgress(ctx, inputs, func(_, _ int) {})
 }
 
 func (r *AutoResolver) Suggest(ctx context.Context, query string) ([]string, error) {
