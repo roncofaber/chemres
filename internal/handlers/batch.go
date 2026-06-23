@@ -7,20 +7,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/roncofaber/chemres/internal/jobs"
 	"github.com/roncofaber/chemres/internal/resolver"
 )
 
 const maxBatchFileSize = 5 << 20
 
-type BatchHandler struct {
-	tmpl     *template.Template
-	resolver resolver.Resolver
-}
-
-func NewBatchHandler(tmpl *template.Template, r resolver.Resolver) *BatchHandler {
-	return &BatchHandler{tmpl: tmpl, resolver: r}
-}
-
+// batchSummary and batchData are used by both BatchStartHandler (indirectly) and BatchStreamHandler.
 type batchSummary struct {
 	Total    int
 	Found    int
@@ -36,7 +29,23 @@ type batchData struct {
 	SystemID    string
 }
 
-func (h *BatchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+type BatchStartHandler struct {
+	tmpl     *template.Template
+	resolver resolver.Resolver
+	store    *jobs.Store
+}
+
+func NewBatchStartHandler(tmpl *template.Template, r resolver.Resolver, store *jobs.Store) *BatchStartHandler {
+	return &BatchStartHandler{tmpl: tmpl, resolver: r, store: store}
+}
+
+type startResponse struct {
+	Job   string `json:"job,omitempty"`
+	Total int    `json:"total,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
+func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -61,7 +70,8 @@ func (h *BatchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if err.Error() == "http: request body too large" {
 				msg = "File too large — maximum size is 5 MB."
 			}
-			h.tmpl.ExecuteTemplate(w, "batch_result.html", batchData{Error: msg})
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(startResponse{Error: msg})
 			return
 		}
 		defer file.Close()
@@ -78,32 +88,20 @@ func (h *BatchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(inputs) == 0 {
-		h.tmpl.ExecuteTemplate(w, "batch_result.html", batchData{
-			Error: "No valid inputs found — enter one per line.",
-		})
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(startResponse{Error: "No valid inputs found — enter one per line."})
 		return
 	}
 
-	ctx := resolver.WithClientIP(r.Context(), realClientIP(r))
-	results, _ := h.resolver.Batch(ctx, inputs)
+	ip := realClientIP(r)
+	id, job := h.store.New(len(inputs))
 
-	summary := batchSummary{Total: len(results)}
-	for _, res := range results {
-		switch {
-		case res.Error == "Not found in PubChem":
-			summary.NotFound++
-		case res.Error != "":
-			summary.Errors++
-		default:
-			summary.Found++
-		}
-	}
+	go func() {
+		ctx := resolver.WithClientIP(job.Ctx, ip)
+		results, err := h.resolver.BatchWithProgress(ctx, inputs, func(_, _ int) { job.Incr() })
+		job.Finish(results, err)
+	}()
 
-	jsonBytes, _ := json.Marshal(results)
-	h.tmpl.ExecuteTemplate(w, "batch_result.html", batchData{
-		Results:     results,
-		ResultsJSON: string(jsonBytes),
-		Summary:     summary,
-		SystemID:    h.resolver.SystemID(),
-	})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(startResponse{Job: id, Total: len(inputs)})
 }
