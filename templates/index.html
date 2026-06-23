@@ -87,23 +87,17 @@
     </section>
 
     <section class="card">
-      <p class="card-title">Batch</p>
+      <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">?</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span></p>
       <button class="card-reset" id="batch-reset" aria-label="Clear"
               onclick="document.getElementById('batch-form').reset();
                        document.getElementById('batch-result').innerHTML='';
+                       hideBatchProgress();
                        this.style.display='none';"
               style="display:none">
         {{template "icon/rotate-ccw" .}}
         Clear
       </button>
-      <form id="batch-form"
-            hx-post="/batch"
-            hx-target="#batch-result"
-            hx-swap="innerHTML"
-            hx-indicator="#batch-indicator, #batch-progress"
-            hx-encoding="multipart/form-data"
-            hx-on:submit="document.getElementById('batch-reset').style.display='flex';
-                          document.getElementById('batch-result').innerHTML='';">
+      <form id="batch-form" onsubmit="startBatch(event)">
         <label for="batch-inputs">Identifiers (one per line)</label>
         <textarea id="batch-inputs" name="inputs" rows="5"
                   placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
@@ -112,10 +106,12 @@
         <div class="input-row">
           <input type="file" name="file" accept=".txt,.csv" style="flex:1;margin-bottom:0;align-self:center">
           <button class="btn" type="submit">Resolve All</button>
-          <span id="batch-indicator" class="indicator">Processing</span>
+          <span id="batch-indicator" class="indicator" style="display:none">Processing</span>
         </div>
       </form>
-      <div class="progress-bar" id="batch-progress"></div>
+      <div class="progress-bar" id="batch-progress">
+        <div class="progress-fill" id="batch-progress-fill"></div>
+      </div>
       <div id="batch-result"></div>
     </section>
   </div>
@@ -337,6 +333,82 @@
       drawStructure(el);
     });
   });
+
+  function startBatch(e) {
+    e.preventDefault();
+    var form = document.getElementById('batch-form');
+    var data = new FormData(form);
+
+    document.getElementById('batch-result').innerHTML = '';
+    document.getElementById('batch-reset').style.display = 'flex';
+    showBatchProgress(0, 'Starting…');
+
+    fetch('/batch/start', { method: 'POST', body: data })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.error) { hideBatchProgress(); showBatchError(res.error); return; }
+        var total = res.total;
+        var es = new EventSource('/batch/stream?job=' + res.job);
+
+        es.addEventListener('progress', function(ev) {
+          var parts = ev.data.split('/');
+          var done = parseInt(parts[0], 10);
+          var tot  = parseInt(parts[1], 10);
+          showBatchProgress(done / tot, done + ' / ' + tot);
+        });
+
+        es.addEventListener('done', function(ev) {
+          es.close();
+          hideBatchProgress();
+          document.getElementById('batch-result').innerHTML = ev.data;
+          document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
+            el.setAttribute('data-sd-rendered', '1');
+            drawStructure(el);
+          });
+        });
+
+        es.addEventListener('error', function(ev) {
+          es.close();
+          hideBatchProgress();
+          showBatchError(ev.data || 'Could not reach PubChem — please try again.');
+        });
+
+        es.onerror = function() {
+          es.close();
+          hideBatchProgress();
+          showBatchError('Connection lost — please try again.');
+        };
+      })
+      .catch(function() {
+        hideBatchProgress();
+        showBatchError('Could not reach server.');
+      });
+  }
+
+  function showBatchProgress(fraction, label) {
+    var bar  = document.getElementById('batch-progress');
+    var fill = document.getElementById('batch-progress-fill');
+    var ind  = document.getElementById('batch-indicator');
+    bar.classList.add('active');
+    fill.style.width = (fraction * 100) + '%';
+    ind.textContent  = label || 'Processing';
+    ind.style.display = 'inline-flex';
+  }
+
+  function hideBatchProgress() {
+    var bar  = document.getElementById('batch-progress');
+    var fill = document.getElementById('batch-progress-fill');
+    var ind  = document.getElementById('batch-indicator');
+    bar.classList.remove('active');
+    fill.style.width  = '0%';
+    ind.style.display = 'none';
+  }
+
+  function showBatchError(msg) {
+    document.getElementById('batch-result').innerHTML =
+      '<div class="result-box error mt-md"><span class="status-badge error-tag">Error</span><p>' +
+      msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p></div>';
+  }
   </script>
 </body>
 </html>
