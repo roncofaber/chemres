@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/roncofaber/chemres/internal/resolver"
 )
+
+const maxExportJSON = 10 << 20 // 10 MB
 
 type ExportHandler struct {
 	tmpl *template.Template
@@ -24,8 +28,13 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	raw := r.FormValue("results")
+	if len(raw) > maxExportJSON {
+		http.Error(w, "results payload too large", http.StatusBadRequest)
+		return
+	}
 	var results []resolver.CompoundResult
-	if err := json.Unmarshal([]byte(r.FormValue("results")), &results); err != nil {
+	if err := json.Unmarshal([]byte(raw), &results); err != nil {
 		http.Error(w, "invalid results data", http.StatusBadRequest)
 		return
 	}
@@ -34,8 +43,10 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		system = "chem"
 	}
 	filename := fmt.Sprintf("%s_%s.csv", system, time.Now().UTC().Format("20060102_150405"))
+	// Quote the filename to prevent header injection.
+	filename = strings.ReplaceAll(filename, `"`, "")
 	w.Header().Set("Content-Type", "text/csv")
-	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 
 	cw := csv.NewWriter(w)
 	cw.Write([]string{"Input", "CID", "IUPAC", "Formula", "MW", "CAS", "InChIKey", "CanonicalSMILES", "IsomericSMILES", "Error"})
@@ -50,4 +61,7 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	cw.Flush()
+	if err := cw.Error(); err != nil {
+		log.Printf("CSV write error: %v", err)
+	}
 }

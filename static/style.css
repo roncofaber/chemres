@@ -509,9 +509,9 @@ input[type="file"]::file-selector-button:hover {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--text-faint);
-  margin-left: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .indicator::before {
@@ -637,12 +637,18 @@ input[type="file"]::file-selector-button:hover {
 }
 
 /* ── Progress bar ────────────────────────────────────────────── */
-.progress-bar {
-  height: 1px;
-  background: transparent;
-  margin-top: 0.75rem;
-  overflow: hidden;
+.progress-wrap {
   display: none;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  overflow: hidden;
 }
 
 .progress-bar.htmx-request {
@@ -665,10 +671,6 @@ input[type="file"]::file-selector-button:hover {
   100% { transform: translateX(350%); }
 }
 
-.progress-bar.active {
-  display: block;
-  background: var(--border);
-}
 
 .progress-fill {
   height: 100%;
@@ -1010,8 +1012,31 @@ details summary::-webkit-details-marker { display: none; }
 
 .chip.valid      { background: var(--found-badge);   color: var(--bg); }
 .chip.invalid    { background: var(--invalid-badge);  color: var(--surface); }
+.chip.warn       { background: var(--warn-badge);     color: var(--surface); }
 .chip.deprecated { background: var(--warn-badge);    color: var(--surface); }
 .chip.error-tag  { background: var(--error-border);  color: var(--surface); }
+
+.col-status { white-space: nowrap; }
+
+.btn-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.4rem;
+  padding: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-retry:hover  { color: var(--accent); border-color: var(--accent); }
+.btn-retry:disabled { opacity: 0.4; cursor: default; }
 
 /* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {

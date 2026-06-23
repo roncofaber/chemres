@@ -2,13 +2,11 @@ package resolver
 
 import (
 	"context"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
 )
 
-var inchiKeyRE = regexp.MustCompile(`^[A-Z]{14}-[A-Z]{10}-[A-Z]$`)
 
 type NameResolver struct {
 	client *pubchemClient

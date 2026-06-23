@@ -63,6 +63,11 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				inputs = append(inputs, line)
 			}
 		}
+		if err := scanner.Err(); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(startResponse{Error: "Failed to read inputs."})
+			return
+		}
 	} else {
 		file, _, err := r.FormFile("file")
 		if err != nil {
@@ -84,6 +89,11 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if line != "" {
 				inputs = append(inputs, line)
 			}
+		}
+		if err := scanner.Err(); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(startResponse{Error: "Failed to read uploaded file."})
+			return
 		}
 	}
 

@@ -106,11 +106,13 @@
         <div class="input-row">
           <input type="file" name="file" accept=".txt,.csv" style="flex:1;margin-bottom:0;align-self:center">
           <button class="btn" type="submit">Resolve All</button>
-          <span id="batch-indicator" class="indicator" style="display:none">Processing</span>
         </div>
       </form>
-      <div class="progress-bar" id="batch-progress">
-        <div class="progress-fill" id="batch-progress-fill"></div>
+      <div class="progress-wrap" id="batch-progress-wrap" style="display:none">
+        <div class="progress-bar" id="batch-progress">
+          <div class="progress-fill" id="batch-progress-fill"></div>
+        </div>
+        <span id="batch-indicator" class="indicator">Processing</span>
       </div>
       <div id="batch-result"></div>
     </section>
@@ -385,22 +387,64 @@
   }
 
   function showBatchProgress(fraction, label) {
-    var bar  = document.getElementById('batch-progress');
+    var wrap = document.getElementById('batch-progress-wrap');
     var fill = document.getElementById('batch-progress-fill');
     var ind  = document.getElementById('batch-indicator');
-    bar.classList.add('active');
-    fill.style.width = (fraction * 100) + '%';
-    ind.textContent  = label || 'Processing';
-    ind.style.display = 'inline-flex';
+    wrap.style.display = 'flex';
+    fill.style.width   = (fraction * 100) + '%';
+    ind.textContent    = label || 'Processing';
+    ind.style.display  = 'inline-flex';
   }
 
   function hideBatchProgress() {
-    var bar  = document.getElementById('batch-progress');
+    var wrap = document.getElementById('batch-progress-wrap');
     var fill = document.getElementById('batch-progress-fill');
-    var ind  = document.getElementById('batch-indicator');
-    bar.classList.remove('active');
-    fill.style.width  = '0%';
-    ind.style.display = 'none';
+    wrap.style.display = 'none';
+    fill.style.width   = '0%';
+  }
+
+  function updateSummaryPills() {
+    var rows = document.querySelectorAll('.batch-table tbody tr');
+    var found = 0, notFound = 0, errors = 0;
+    rows.forEach(function(r) {
+      var s = r.dataset.status;
+      if (s === 'found') found++;
+      else if (s === 'notfound') notFound++;
+      else errors++;
+    });
+    var vp = document.querySelector('.summary-pill.valid');
+    var wp = document.querySelector('.summary-pill.warn');
+    var ip = document.querySelector('.summary-pill.invalid');
+    if (vp) vp.textContent = found + ' found';
+    if (wp) wp.textContent = notFound + ' not found';
+    if (ip) { ip.textContent = errors + ' errors'; ip.style.display = errors > 0 ? '' : 'none'; }
+  }
+
+  function retryRow(btn) {
+    var input = btn.dataset.input;
+    var row   = btn.closest('tr');
+    btn.disabled    = true;
+    btn.textContent = '…';
+
+    var data = new FormData();
+    data.append('inputs', input);
+
+    fetch('/batch/start', { method: 'POST', body: data })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.error) { btn.disabled = false; btn.textContent = '↺'; return; }
+        var es = new EventSource('/batch/stream?job=' + res.job);
+        es.addEventListener('done', function(ev) {
+          es.close();
+          var doc    = new DOMParser().parseFromString(ev.data, 'text/html');
+          var newRow = doc.querySelector('tbody tr');
+          if (newRow) { row.replaceWith(newRow); updateSummaryPills(); }
+          else { btn.disabled = false; btn.textContent = '↺'; }
+        });
+        es.addEventListener('error', function() { es.close(); btn.disabled = false; btn.textContent = '↺'; });
+        es.onerror = function() { es.close(); btn.disabled = false; btn.textContent = '↺'; };
+      })
+      .catch(function() { btn.disabled = false; btn.textContent = '↺'; });
   }
 
   function showBatchError(msg) {

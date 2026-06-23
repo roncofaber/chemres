@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 
@@ -29,23 +30,29 @@ func (h *ResolveHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	input := strings.TrimSpace(r.FormValue("input"))
 	if input == "" {
-		h.tmpl.ExecuteTemplate(w, "result.html", resultData{
+		if err := h.tmpl.ExecuteTemplate(w, "result.html", resultData{
 			CompoundResult: resolver.CompoundResult{Error: "Input must not be empty."},
 			SystemID:       h.resolver.SystemID(),
-		})
+		}); err != nil {
+			log.Printf("template error: %v", err)
+		}
 		return
 	}
 	ctx := resolver.WithClientIP(r.Context(), realClientIP(r))
 	res, err := h.resolver.Resolve(ctx, input)
 	if err != nil {
-		h.tmpl.ExecuteTemplate(w, "result.html", resultData{
+		if err := h.tmpl.ExecuteTemplate(w, "result.html", resultData{
 			CompoundResult: resolver.CompoundResult{Error: "Could not reach PubChem — please try again."},
 			SystemID:       h.resolver.SystemID(),
-		})
+		}); err != nil {
+			log.Printf("template error: %v", err)
+		}
 		return
 	}
-	h.tmpl.ExecuteTemplate(w, "result.html", resultData{
+	if err := h.tmpl.ExecuteTemplate(w, "result.html", resultData{
 		CompoundResult: res,
 		SystemID:       h.resolver.SystemID(),
-	})
+	}); err != nil {
+		log.Printf("template error: %v", err)
+	}
 }

@@ -7,8 +7,8 @@
 <div class="mt-md">
   <div class="summary-bar">
     <span class="summary-pill valid">{{.Summary.Found}} found</span>
-    <span class="summary-pill invalid">{{.Summary.NotFound}} not found</span>
-    {{if .Summary.Errors}}<span class="summary-pill warn">{{.Summary.Errors}} errors</span>{{end}}
+    <span class="summary-pill warn">{{.Summary.NotFound}} not found</span>
+    {{if .Summary.Errors}}<span class="summary-pill invalid">{{.Summary.Errors}} errors</span>{{end}}
     <span class="summary-pill neutral">{{.Summary.Total}} total</span>
     <form method="post" action="/export" class="ml-auto">
       <input type="hidden" name="results" value="{{.ResultsJSON}}">
@@ -29,10 +29,10 @@
       </thead>
       <tbody>
         {{range .Results}}
-        <tr>
+        <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}">
           <td class="col-code">{{.Input}}</td>
-          <td>
-            {{if .Error}}<span class="chip error-tag">Error</span>
+          <td class="col-status">
+            {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag">Error</span><button class="btn-retry" data-input="{{.Input}}" onclick="retryRow(this)" title="Retry">↺</button>{{end}}
             {{else}}<span class="chip valid">Found</span>{{end}}
           </td>
           <td class="col-name">{{.IUPAC}}</td>

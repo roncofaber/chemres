@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 
@@ -27,5 +28,7 @@ func (h *SuggestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(suggestions) == 0 {
 		return
 	}
-	h.tmpl.ExecuteTemplate(w, "suggest.html", suggestions)
+	if err := h.tmpl.ExecuteTemplate(w, "suggest.html", suggestions); err != nil {
+		log.Printf("template error: %v", err)
+	}
 }

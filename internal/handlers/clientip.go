@@ -8,8 +8,9 @@ import (
 
 func realClientIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if ip := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0]); ip != "" {
-			return ip
+		candidate := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0])
+		if net.ParseIP(candidate) != nil {
+			return candidate
 		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)

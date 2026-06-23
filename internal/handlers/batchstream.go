@@ -94,7 +94,11 @@ func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				SystemID:    h.resolver.SystemID(),
 			}
 			var buf bytes.Buffer
-			h.tmpl.ExecuteTemplate(&buf, "batch_result.html", data)
+			if err := h.tmpl.ExecuteTemplate(&buf, "batch_result.html", data); err != nil {
+				fmt.Fprintf(w, "event: error\ndata: Failed to render results.\n\n")
+				flusher.Flush()
+				return
+			}
 			// SSE data fields cannot contain bare newlines — collapse to spaces.
 			html := bytes.ReplaceAll(buf.Bytes(), []byte("\n"), []byte(" "))
 			fmt.Fprintf(w, "event: done\ndata: %s\n\n", html)

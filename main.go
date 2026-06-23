@@ -28,7 +28,9 @@ func main() {
 			http.NotFound(w, req)
 			return
 		}
-		tmpl.ExecuteTemplate(w, "index.html", nil)
+		if err := tmpl.ExecuteTemplate(w, "index.html", nil); err != nil {
+			log.Printf("template error: %v", err)
+		}
 	})
 
 	port := os.Getenv("PORT")
