@@ -1,35 +1,46 @@
 package resolver
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"io"
+	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
-const pubchemBase          = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-const pubchemAutocomplete  = "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete"
-const propertyFields       = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
+const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+const pubchemAutocomplete = "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete"
+const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
+
+const (
+	rateLimitPerSec = 4
+	rateBurst       = 4
+	maxRetries      = 3
+)
+
+var retryBackoffs = []time.Duration{250 * time.Millisecond, 500 * time.Millisecond, 1000 * time.Millisecond}
 
 var errNotFound = errors.New("not found")
-var errBadInput  = errors.New("bad input")
-var casRE      = regexp.MustCompile(`^\d+-\d+-\d+$`)
+var errBadInput = errors.New("bad input")
+var casRE = regexp.MustCompile(`^\d+-\d+-\d+$`)
 var inchiKeyRE2 = regexp.MustCompile(`^[A-Z]{14}-[A-Z]{10}-[A-Z]$`)
 
-// firstCommonName returns the first synonym that looks like a human-readable name
-// (not a CAS number, InChIKey, or registry code).
 func firstCommonName(synonyms []string) string {
 	for _, s := range synonyms {
 		if casRE.MatchString(s) || inchiKeyRE2.MatchString(s) {
 			continue
 		}
-		// Skip internal registry codes (contain colons)
 		if strings.ContainsRune(s, ':') {
 			continue
 		}
@@ -39,9 +50,10 @@ func firstCommonName(synonyms []string) string {
 }
 
 type pubchemClient struct {
-	baseURL       string
+	baseURL          string
 	autocompleteBase string
-	http          *http.Client
+	http             *http.Client
+	limiters         sync.Map
 }
 
 func newPubchemClient() *pubchemClient {
@@ -52,16 +64,83 @@ func newPubchemClient() *pubchemClient {
 	}
 }
 
+func (c *pubchemClient) limiterFor(ip string) *rate.Limiter {
+	if ip == "" {
+		return nil
+	}
+	v, _ := c.limiters.LoadOrStore(ip, rate.NewLimiter(rateLimitPerSec, rateBurst))
+	return v.(*rate.Limiter)
+}
+
+func isTransient(statusCode int, err error) bool {
+	if err != nil {
+		var netErr net.Error
+		if errors.As(err, &netErr) && netErr.Timeout() {
+			return true
+		}
+		if errors.Is(err, context.DeadlineExceeded) {
+			return true
+		}
+		return false
+	}
+	return statusCode == http.StatusServiceUnavailable || (statusCode >= 500 && statusCode != http.StatusNotFound)
+}
+
+func (c *pubchemClient) do(ctx context.Context, req *http.Request) (*http.Response, error) {
+	if ip := clientIPFromCtx(ctx); ip != "" {
+		req.Header.Set("X-Forwarded-For", ip)
+	}
+
+	lim := c.limiterFor(clientIPFromCtx(ctx))
+	if lim != nil {
+		if err := lim.Wait(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	var (
+		resp *http.Response
+		err  error
+	)
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			log.Printf("WARN pubchem retry attempt=%d ip=%s", attempt, clientIPFromCtx(ctx))
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(retryBackoffs[attempt-1]):
+			}
+		}
+		resp, err = c.http.Do(req.Clone(ctx))
+		if err != nil {
+			if isTransient(0, err) {
+				continue
+			}
+			return nil, err
+		}
+		if isTransient(resp.StatusCode, nil) {
+			resp.Body.Close()
+			resp = nil
+			continue
+		}
+		return resp, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return nil, fmt.Errorf("pubchem unavailable after %d retries", maxRetries)
+}
+
 type propertyRow struct {
-	CID                  int    `json:"CID"`
-	IUPACName            string `json:"IUPACName"`
-	MolecularFormula     string `json:"MolecularFormula"`
-	MolecularWeight      string `json:"MolecularWeight"`
-	InChIKey             string `json:"InChIKey"`
-	CanonicalSMILES      string `json:"CanonicalSMILES"`
-	IsomericSMILES       string `json:"IsomericSMILES"`
-	SMILES               string `json:"SMILES"`
-	ConnectivitySMILES   string `json:"ConnectivitySMILES"`
+	CID                int    `json:"CID"`
+	IUPACName          string `json:"IUPACName"`
+	MolecularFormula   string `json:"MolecularFormula"`
+	MolecularWeight    string `json:"MolecularWeight"`
+	InChIKey           string `json:"InChIKey"`
+	CanonicalSMILES    string `json:"CanonicalSMILES"`
+	IsomericSMILES     string `json:"IsomericSMILES"`
+	SMILES             string `json:"SMILES"`
+	ConnectivitySMILES string `json:"ConnectivitySMILES"`
 }
 
 type propertyTable struct {
@@ -85,23 +164,28 @@ type synonymResponse struct {
 	InformationList synonymInfo `json:"InformationList"`
 }
 
-// fetchProperties calls PubChem for compound properties.
-// SMILES uses POST to handle special characters; name/CAS uses GET.
-func (c *pubchemClient) fetchProperties(namespace, identifier string, namespaceIsSmiles bool) (propertyResponse, error) {
+func (c *pubchemClient) fetchProperties(ctx context.Context, namespace, identifier string, namespaceIsSmiles bool) (propertyResponse, error) {
 	path := fmt.Sprintf("%s/compound/%s/property/%s/JSON", c.baseURL, namespace, propertyFields)
 
-	var (
-		resp *http.Response
-		err  error
-	)
+	var req *http.Request
+	var err error
 	if namespaceIsSmiles {
 		body := strings.NewReader(url.Values{"smiles": {identifier}}.Encode())
-		resp, err = c.http.Post(path, "application/x-www-form-urlencoded", body)
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, path, body)
+		if err != nil {
+			return propertyResponse{}, err
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	} else {
 		getURL := fmt.Sprintf("%s/compound/%s/%s/property/%s/JSON",
 			c.baseURL, namespace, url.PathEscape(identifier), propertyFields)
-		resp, err = c.http.Get(getURL)
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, getURL, nil)
+		if err != nil {
+			return propertyResponse{}, err
+		}
 	}
+
+	resp, err := c.do(ctx, req)
 	if err != nil {
 		return propertyResponse{}, err
 	}
@@ -123,10 +207,13 @@ func (c *pubchemClient) fetchProperties(namespace, identifier string, namespaceI
 	return result, nil
 }
 
-// fetchSVG fetches the 2D structure SVG for a CID. Failure is non-fatal.
-func (c *pubchemClient) fetchSVG(cid int) (template.HTML, error) {
+func (c *pubchemClient) fetchSVG(ctx context.Context, cid int) (template.HTML, error) {
 	u := fmt.Sprintf("%s/compound/cid/%d/record/SVG?record_type=2d", c.baseURL, cid)
-	resp, err := c.http.Get(u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := c.do(ctx, req)
 	if err != nil {
 		return "", err
 	}
@@ -141,10 +228,13 @@ func (c *pubchemClient) fetchSVG(cid int) (template.HTML, error) {
 	return template.HTML(b), nil
 }
 
-// fetchSynonyms returns all synonyms and the first CAS number for a CID.
-func (c *pubchemClient) fetchSynonyms(cid int) (cas string, synonyms []string, err error) {
+func (c *pubchemClient) fetchSynonyms(ctx context.Context, cid int) (cas string, synonyms []string, err error) {
 	u := fmt.Sprintf("%s/compound/cid/%d/synonyms/JSON", c.baseURL, cid)
-	resp, err := c.http.Get(u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return "", nil, err
+	}
+	resp, err := c.do(ctx, req)
 	if err != nil {
 		return "", nil, err
 	}
@@ -178,12 +268,15 @@ type autocompleteResponse struct {
 	} `json:"dictionary_terms"`
 }
 
-// autocomplete returns name suggestions for the given prefix.
-func (c *pubchemClient) autocomplete(prefix string, limit int) ([]string, error) {
+func (c *pubchemClient) autocomplete(ctx context.Context, prefix string, limit int) ([]string, error) {
 	u := fmt.Sprintf("%s/compound/%s/JSON?limit=%d", c.autocompleteBase, url.PathEscape(prefix), limit)
-	resp, err := c.http.Get(u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
+	}
+	resp, err := c.do(ctx, req)
+	if err != nil {
+		return nil, nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
