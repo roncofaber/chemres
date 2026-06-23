@@ -26,12 +26,13 @@
           <th>Formula</th>
           <th>MW</th>
           <th>CAS</th>
-          <th>InChIKey</th>
+          <th class="expand-chevron"></th>
         </tr>
       </thead>
       <tbody>
         {{range .Results}}
-        <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}">
+        {{$found := eq .Error ""}}
+        <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}"{{if $found}} class="expandable-row" onclick="toggleBatchRow(this)"{{end}}>
           <td class="col-code">{{.Input}}</td>
           <td class="col-status">
             {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag" title="{{.Error}}">Error</span><button class="btn-retry" data-input="{{.Input}}" onclick="retryRow(this)" title="Retry">↺</button>{{end}}
@@ -41,8 +42,26 @@
           <td class="col-code">{{.Formula}}</td>
           <td class="col-code">{{.MW}}</td>
           <td class="col-code">{{.CAS}}</td>
-          <td class="col-code">{{.InChIKey}}</td>
+          <td class="expand-chevron">{{if $found}}<span class="row-chevron">›</span>{{end}}</td>
         </tr>
+        {{if $found}}
+        <tr class="expand-row" style="display:none">
+          <td colspan="7" class="expand-cell">
+            <div class="expand-card" onclick="event.stopPropagation()">
+              {{if .Canonical}}
+              <div class="structure-wrap expand-structure" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" style="display:block"></div>
+              {{end}}
+              <div class="expand-fields">
+                {{if .CommonName}}<div class="expand-field"><span class="expand-label">Name</span><span>{{.CommonName}}</span></div>{{end}}
+                {{if .InChIKey}}<div class="expand-field"><span class="expand-label">InChIKey</span><code class="expand-code">{{.InChIKey}}</code></div>{{end}}
+                {{if .Canonical}}<div class="expand-field"><span class="expand-label">SMILES</span><code class="expand-code">{{.Canonical}}</code></div>{{end}}
+                {{if and .Isomeric (ne .Isomeric .Canonical)}}<div class="expand-field"><span class="expand-label">Isomeric</span><code class="expand-code">{{.Isomeric}}</code></div>{{end}}
+                {{if .CID}}<div class="expand-field"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener" class="expand-link">PubChem ↗</a></div>{{end}}
+              </div>
+            </div>
+          </td>
+        </tr>
+        {{end}}
         {{end}}
       </tbody>
     </table>

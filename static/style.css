@@ -1038,6 +1038,104 @@ details summary::-webkit-details-marker { display: none; }
 .btn-retry:hover  { color: var(--accent); border-color: var(--accent); }
 .btn-retry:disabled { opacity: 0.4; cursor: default; }
 
+/* ── Batch cancel button ─────────────────────────────────────── */
+.btn-cancel-batch {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-cancel-batch:hover { color: var(--error-text); border-color: var(--error-border); }
+
+/* ── Batch expand row ────────────────────────────────────────── */
+.expandable-row { cursor: pointer; }
+
+.expand-chevron {
+  width: 1.5rem;
+  text-align: center;
+  padding-left: 0 !important;
+  padding-right: 0.5rem !important;
+}
+
+.row-chevron {
+  display: inline-block;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  transition: transform 0.18s ease;
+  line-height: 1;
+}
+
+.expandable-row.row-expanded .row-chevron { transform: rotate(90deg); }
+
+.expand-row td { padding: 0; border-bottom: none; }
+.expand-row:hover { background: transparent !important; }
+
+.expand-card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.9rem 1.25rem 0.9rem 1rem;
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.expand-structure {
+  flex-shrink: 0;
+  width: 150px;
+  height: 130px;
+  cursor: zoom-in;
+}
+
+.expand-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
+.expand-field {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.78rem;
+}
+
+.expand-label {
+  flex-shrink: 0;
+  width: 4.5rem;
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.expand-code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.expand-link {
+  color: var(--accent);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+.expand-link:hover { text-decoration: underline; }
+
 /* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {
   max-width: 720px;

@@ -113,6 +113,7 @@
           <div class="progress-fill" id="batch-progress-fill"></div>
         </div>
         <span id="batch-indicator" class="indicator">Processing</span>
+        <button class="btn-cancel-batch" id="batch-cancel" onclick="cancelBatch()" title="Cancel" style="display:none">✕</button>
       </div>
       <div id="batch-result"></div>
     </section>
@@ -338,6 +339,13 @@
     });
   });
 
+  var _batchES = null;
+
+  function cancelBatch() {
+    if (_batchES) { _batchES.close(); _batchES = null; }
+    hideBatchProgress();
+  }
+
   function startBatch(e) {
     e.preventDefault();
     var form = document.getElementById('batch-form');
@@ -352,6 +360,7 @@
       .then(function(res) {
         if (res.error) { hideBatchProgress(); showBatchError(res.error); return; }
         var es = new EventSource('/batch/stream?job=' + res.job);
+        _batchES = es;
 
         es.addEventListener('progress', function(ev) {
           var parts = ev.data.split('/');
@@ -361,23 +370,26 @@
         });
 
         es.addEventListener('done', function(ev) {
-          es.close();
+          es.close(); _batchES = null;
           hideBatchProgress();
           document.getElementById('batch-result').innerHTML = ev.data;
-          document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
-            el.setAttribute('data-sd-rendered', '1');
-            drawStructure(el);
+          // Skip expand-row structures — they render lazily on first click.
+          document.querySelectorAll('.batch-table .structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
+            if (!el.closest('.expand-row')) {
+              el.setAttribute('data-sd-rendered', '1');
+              drawStructure(el);
+            }
           });
         });
 
         es.addEventListener('error', function(ev) {
-          es.close();
+          es.close(); _batchES = null;
           hideBatchProgress();
           showBatchError(ev.data || 'Could not reach PubChem — please try again.');
         });
 
         es.onerror = function() {
-          es.close();
+          es.close(); _batchES = null;
           hideBatchProgress();
           showBatchError('Connection lost — please try again.');
         };
@@ -389,24 +401,29 @@
   }
 
   function showBatchProgress(fraction, label) {
-    var wrap = document.getElementById('batch-progress-wrap');
-    var fill = document.getElementById('batch-progress-fill');
-    var ind  = document.getElementById('batch-indicator');
-    wrap.style.display = 'flex';
-    fill.style.width   = (fraction * 100) + '%';
-    ind.textContent    = label || 'Processing';
-    ind.style.display  = 'inline-flex';
+    var wrap   = document.getElementById('batch-progress-wrap');
+    var fill   = document.getElementById('batch-progress-fill');
+    var ind    = document.getElementById('batch-indicator');
+    var cancel = document.getElementById('batch-cancel');
+    wrap.style.display   = 'flex';
+    fill.style.width     = (fraction * 100) + '%';
+    ind.textContent      = label || 'Processing';
+    ind.style.display    = 'inline-flex';
+    cancel.style.display = 'inline-flex';
   }
 
   function hideBatchProgress() {
-    var wrap = document.getElementById('batch-progress-wrap');
-    var fill = document.getElementById('batch-progress-fill');
-    wrap.style.display = 'none';
-    fill.style.width   = '0%';
+    var wrap   = document.getElementById('batch-progress-wrap');
+    var fill   = document.getElementById('batch-progress-fill');
+    var cancel = document.getElementById('batch-cancel');
+    wrap.style.display   = 'none';
+    fill.style.width     = '0%';
+    cancel.style.display = 'none';
   }
 
   function updateSummaryPills() {
-    var rows = document.querySelectorAll('.batch-table tbody tr');
+    // Only count data rows (those with data-status); skip expand rows.
+    var rows = document.querySelectorAll('.batch-table tbody tr[data-status]');
     var found = 0, notFound = 0, errors = 0;
     rows.forEach(function(r) {
       var s = r.dataset.status;
@@ -420,6 +437,29 @@
     if (vp) vp.textContent = found + ' found';
     if (wp) wp.textContent = notFound + ' not found';
     if (ip) { ip.textContent = errors + ' errors'; ip.style.display = errors > 0 ? '' : 'none'; }
+  }
+
+  function toggleBatchRow(row) {
+    var expandRow = row.nextElementSibling;
+    if (!expandRow || !expandRow.classList.contains('expand-row')) return;
+    var isOpen = expandRow.style.display !== 'none';
+    // Collapse all open rows first.
+    document.querySelectorAll('.expand-row').forEach(function(r) {
+      r.style.display = 'none';
+    });
+    document.querySelectorAll('.expandable-row').forEach(function(r) {
+      r.classList.remove('row-expanded');
+    });
+    if (!isOpen) {
+      expandRow.style.display = '';
+      row.classList.add('row-expanded');
+      // Lazy-render structure on first expand.
+      var wrap = expandRow.querySelector('.structure-wrap[data-smiles]:not([data-sd-rendered])');
+      if (wrap) {
+        wrap.setAttribute('data-sd-rendered', '1');
+        drawStructure(wrap);
+      }
+    }
   }
 
   function retryRow(btn) {
@@ -438,10 +478,17 @@
         var es = new EventSource('/batch/stream?job=' + res.job);
         es.addEventListener('done', function(ev) {
           es.close();
-          var doc    = new DOMParser().parseFromString(ev.data, 'text/html');
-          var newRow = doc.querySelector('tbody tr');
-          if (newRow) { row.replaceWith(newRow); updateSummaryPills(); }
-          else { btn.disabled = false; btn.textContent = '↺'; }
+          var doc  = new DOMParser().parseFromString(ev.data, 'text/html');
+          var newTrs = Array.from(doc.querySelectorAll('tbody tr'));
+          if (!newTrs.length) { btn.disabled = false; btn.textContent = '↺'; return; }
+          // Remove the old expand row sibling if present.
+          var next = row.nextElementSibling;
+          if (next && next.classList.contains('expand-row')) next.remove();
+          // Insert all new rows (data row + optional expand row).
+          var frag = document.createDocumentFragment();
+          newTrs.forEach(function(tr) { frag.appendChild(tr); });
+          row.replaceWith(frag);
+          updateSummaryPills();
         });
         es.addEventListener('error', function() { es.close(); btn.disabled = false; btn.textContent = '↺'; });
         es.onerror = function() { es.close(); btn.disabled = false; btn.textContent = '↺'; };
