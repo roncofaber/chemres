@@ -140,7 +140,7 @@ function drawStructure(el) {
     el.setAttribute('data-sd-rendered', '1');
     el.style.display = '';
     el.style.cursor  = 'zoom-in';
-    el.addEventListener('click', function() { openStructureModal(smiles, name, formula); });
+    el.onclick = function() { openStructureModal(smiles, name, formula); };
   }, function() { /* keep hidden */ });
 }
 
