@@ -1,17 +1,23 @@
-# Chem Resolver
+# Chemical Resolver
 
 A lightweight web app for resolving chemical identifiers via the [PubChem REST API](https://pubchem.ncbi.nlm.nih.gov/).
 
-Accepts **SMILES**, **names**, **CAS numbers**, and **InChIKeys** — type any of them in the single input field and get back the compound's IUPAC name, molecular formula, molecular weight, canonical SMILES, InChIKey, CAS number, 2D structure, and synonyms.
+**Live:** [chemres.app](https://chemres.app)
+
+Accepts **SMILES**, **names**, **CAS numbers**, and **InChIKeys** — type any of them and get back the compound's preferred name, IUPAC name, molecular formula, molecular weight, canonical SMILES, InChIKey, CAS number, 2D structure, and synonyms.
 
 ## Features
 
-- **Auto-detection** — no need to select input type; SMILES, names, CAS numbers, and InChIKeys are routed automatically
-- **Single lookup** with autocomplete for names
-- **Batch mode** — paste a list or upload a file; results exported as CSV
-- **2D structure rendering** — client-side SVG via SmilesDrawer; click to enlarge, download as SVG
-- **Dark / light theme** — persisted per browser
-- **No dependencies** — single Go binary + templates; zero external packages
+- **Auto-detection** — SMILES, names, CAS numbers, and InChIKeys are routed automatically; no need to select input type
+- **Autocomplete** — name suggestions with keyboard navigation as you type
+- **Single lookup** — instant result with structure drawing, copyable fields, and a direct PubChem link
+- **Batch mode** — paste a list or upload a plain text file; real-time progress bar via SSE; results in an interactive table with sortable columns and per-row expand cards showing structure + full details
+- **Retry** — re-resolve individual failed batch entries without re-running the whole batch
+- **CSV export** — includes PubChem URL, common name, InChIKey, SMILES, and fetch timestamp for reproducibility
+- **2D structure rendering** — client-side via SmilesDrawer; theme-aware (light/dark); click to enlarge, download as SVG or copy as PNG
+- **Dark / light theme** — persisted per browser; structures re-render on toggle
+- **Mobile responsive** — usable on phones; batch table adapts to narrow screens
+- **Rate limiting** — per-user token bucket (4 req/s) via `X-Forwarded-For` forwarding; requests retry automatically on transient errors
 
 ## Running locally
 
@@ -30,9 +36,9 @@ docker run -p 8080:8080 chemres
 
 ## Deployment
 
-The app is a single stateless Go binary. Any platform that runs Docker containers works (Fly.io, Railway, Render, Cloud Run, etc.).
+The app is a stateless Go binary. Any platform that runs Docker containers works (Fly.io, Railway, Render, Cloud Run, etc.).
 
-Set the `PORT` environment variable if the platform injects it (most do).
+Set the `PORT` environment variable if the platform injects it (most do). The included `fly.toml` targets Fly.io with auto-stop/start to keep costs near zero for light usage.
 
 ## Attribution
 

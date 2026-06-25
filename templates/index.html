@@ -390,7 +390,8 @@
     document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(drawStructure);
   });
 
-  document.getElementById('lookup-form').addEventListener('htmx:beforeRequest', function() {
+  document.getElementById('lookup-form').addEventListener('htmx:beforeRequest', function(evt) {
+    if (evt.detail.requestConfig.verb !== 'post') return;
     var btn = this.querySelector('.btn');
     btn.classList.add('btn--pressed');
     setTimeout(function() { btn.classList.remove('btn--pressed'); }, 150);
