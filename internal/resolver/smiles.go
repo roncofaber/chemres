@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"log"
 	"sync"
 	"time"
 )
@@ -17,7 +18,6 @@ func NewSmilesResolver() Resolver {
 }
 
 func (r *SmilesResolver) SystemID() string { return "smiles" }
-func (r *SmilesResolver) Name() string     { return "SMILES" }
 
 func (r *SmilesResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
 	return r.resolve(ctx, input, true)
@@ -64,7 +64,9 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, withSynonyms
 	result.CommonName = p.Title
 
 	if withSynonyms {
-		if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
+		if cas, syns, err := r.client.fetchSynonyms(ctx, p.CID); err != nil {
+			log.Printf("WARN fetchSynonyms cid=%d: %v", p.CID, err)
+		} else if cas != "" || len(syns) > 0 {
 			result.CAS     = cas
 			result.Synonyms = syns
 			if result.CommonName == "" {

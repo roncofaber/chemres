@@ -23,7 +23,6 @@ type CompoundResult struct {
 
 type Resolver interface {
 	SystemID() string
-	Name()     string
 	Resolve(ctx context.Context, input string) (CompoundResult, error)
 	Batch(ctx context.Context, inputs []string) ([]CompoundResult, error)
 	BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]CompoundResult, error)

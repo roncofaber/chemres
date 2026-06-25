@@ -1120,6 +1120,7 @@ details summary::-webkit-details-marker { display: none; }
 
 .expand-row td { padding: 0; border-bottom: none; }
 .expand-row:hover { background: transparent !important; }
+.expand-cell { padding: 0; }
 
 .expand-card {
   display: flex;
@@ -1408,10 +1409,6 @@ details summary::-webkit-details-marker { display: none; }
   border-top: 1px solid var(--border);
 }
 
-.modal-structure {
-  padding: 0.5rem 1.25rem;
-}
-
 .modal-close {
   display: flex;
   align-items: center;
@@ -1435,6 +1432,7 @@ details summary::-webkit-details-marker { display: none; }
 .modal-structure {
   background: var(--structure-bg);
   border-radius: var(--radius);
+  padding: 0.5rem 1.25rem;
   line-height: 0;
 }
 

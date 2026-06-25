@@ -245,40 +245,6 @@ func (c *pubchemClient) fetchSynonyms(ctx context.Context, cid int) (cas string,
 	return cas, synonyms, nil
 }
 
-// fetchPropertiesBatch fetches properties for a list of CIDs in one request.
-// Returns a map of CID → propertyRow.
-func (c *pubchemClient) fetchPropertiesBatch(ctx context.Context, cids []int) (map[int]propertyRow, error) {
-	if len(cids) == 0 {
-		return nil, nil
-	}
-	cidStrs := make([]string, len(cids))
-	for i, cid := range cids {
-		cidStrs[i] = strconv.Itoa(cid)
-	}
-	u := fmt.Sprintf("%s/compound/cid/%s/property/%s/JSON",
-		c.baseURL, strings.Join(cidStrs, ","), propertyFields)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := c.do(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("batch properties fetch returned %d", resp.StatusCode)
-	}
-	var result propertyResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	m := make(map[int]propertyRow, len(result.PropertyTable.Properties))
-	for _, p := range result.PropertyTable.Properties {
-		m[p.CID] = p
-	}
-	return m, nil
-}
 
 type synonymBatchEntry struct {
 	CAS      string

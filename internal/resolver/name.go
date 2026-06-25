@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -16,7 +17,6 @@ func NewNameResolver() Resolver {
 }
 
 func (r *NameResolver) SystemID() string { return "name" }
-func (r *NameResolver) Name() string     { return "Name / CAS" }
 
 func (r *NameResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
 	return r.resolve(ctx, input, true)
@@ -68,7 +68,9 @@ func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms b
 	result.CommonName = p.Title
 
 	if withSynonyms {
-		if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
+		if cas, syns, err := r.client.fetchSynonyms(ctx, p.CID); err != nil {
+			log.Printf("WARN fetchSynonyms cid=%d: %v", p.CID, err)
+		} else if cas != "" || len(syns) > 0 {
 			result.CAS     = cas
 			result.Synonyms = syns
 			if result.CommonName == "" {

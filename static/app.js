@@ -331,6 +331,7 @@ function retryRow(btn) {
     .catch(function() { btn.disabled = false; btn.textContent = '↺'; });
 }
 
+
 function sortBatchTable(th, colIdx, mode) {
   var table  = th.closest('table');
   var tbody  = table.querySelector('tbody');

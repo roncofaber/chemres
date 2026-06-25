@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -68,7 +69,6 @@ func NewAutoResolver() Resolver {
 }
 
 func (r *AutoResolver) SystemID() string { return "auto" }
-func (r *AutoResolver) Name() string     { return "Chemical Identifier" }
 
 func (r *AutoResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
 	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
@@ -127,6 +127,9 @@ func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, o
 
 	if len(cids) > 0 {
 		synMap, err := r.name.client.fetchSynonymsBatch(ctx, cids)
+		if err != nil {
+			log.Printf("WARN fetchSynonymsBatch: %v", err)
+		}
 		if err == nil && synMap != nil {
 			for cid, idxs := range cidIdx {
 				entry, ok := synMap[cid]
