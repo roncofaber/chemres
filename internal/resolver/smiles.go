@@ -58,15 +58,18 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG boo
 	if result.Isomeric == "" {
 		result.Isomeric = p.ConnectivitySMILES
 	}
-	result.Formula   = p.MolecularFormula
-	result.MW        = p.MolecularWeight
-	result.InChIKey  = p.InChIKey
+	result.Formula    = p.MolecularFormula
+	result.MW         = p.MolecularWeight
+	result.InChIKey   = p.InChIKey
+	result.CommonName = p.Title
 
 	if withSynonyms {
 		if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
-			result.CAS        = cas
-			result.Synonyms   = syns
-			result.CommonName = firstCommonName(syns)
+			result.CAS     = cas
+			result.Synonyms = syns
+			if result.CommonName == "" {
+				result.CommonName = firstCommonName(syns)
+			}
 		}
 	}
 	if fetchSVG {

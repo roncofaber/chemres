@@ -20,12 +20,12 @@
     <table class="batch-table">
       <thead>
         <tr>
-          <th>Input</th>
-          <th>Status</th>
-          <th>IUPAC</th>
-          <th>Formula</th>
-          <th>MW</th>
-          <th>CAS</th>
+          <th class="sortable" onclick="sortBatchTable(this,0,'text')">Input<span class="sort-indicator">↕</span></th>
+          <th class="sortable" onclick="sortBatchTable(this,1,'status')">Status<span class="sort-indicator">↕</span></th>
+          <th class="sortable" onclick="sortBatchTable(this,2,'text')">IUPAC<span class="sort-indicator">↕</span></th>
+          <th class="sortable" onclick="sortBatchTable(this,3,'text')">Formula<span class="sort-indicator">↕</span></th>
+          <th class="sortable" onclick="sortBatchTable(this,4,'num')">MW<span class="sort-indicator">↕</span></th>
+          <th class="sortable" onclick="sortBatchTable(this,5,'text')">CAS<span class="sort-indicator">↕</span></th>
           <th class="expand-chevron"></th>
         </tr>
       </thead>
@@ -39,7 +39,7 @@
             {{else}}<span class="chip valid">Found</span>{{end}}
           </td>
           <td class="col-name">{{.IUPAC}}</td>
-          <td class="col-code">{{.Formula}}</td>
+          <td class="col-code">{{formatFormula .Formula}}</td>
           <td class="col-code">{{.MW}}</td>
           <td class="col-code">{{.CAS}}</td>
           <td class="expand-chevron">{{if $found}}<span class="row-chevron">›</span>{{end}}</td>
@@ -49,10 +49,12 @@
           <td colspan="7" class="expand-cell">
             <div class="expand-card" onclick="event.stopPropagation()">
               {{if .Canonical}}
-              <div class="structure-wrap expand-structure" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" style="display:block"></div>
+              <div class="structure-wrap expand-structure" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:block"></div>
               {{end}}
               <div class="expand-fields">
-                {{if .CommonName}}<div class="expand-field"><span class="expand-label">Name</span><span>{{.CommonName}}</span></div>{{end}}
+                {{if or .CommonName .Formula}}<div class="expand-title">{{compoundTitle .CommonName .Formula}}</div>{{end}}
+                {{if .MW}}<div class="expand-field"><span class="expand-label">MW</span><span>{{.MW}} g/mol</span></div>{{end}}
+                {{if .CAS}}<div class="expand-field"><span class="expand-label">CAS</span><code class="expand-code">{{.CAS}}</code></div>{{end}}
                 {{if .InChIKey}}<div class="expand-field"><span class="expand-label">InChIKey</span><code class="expand-code">{{.InChIKey}}</code></div>{{end}}
                 {{if .Canonical}}<div class="expand-field"><span class="expand-label">SMILES</span><code class="expand-code">{{.Canonical}}</code></div>{{end}}
                 {{if and .Isomeric (ne .Isomeric .Canonical)}}<div class="expand-field"><span class="expand-label">Isomeric</span><code class="expand-code">{{.Isomeric}}</code></div>{{end}}

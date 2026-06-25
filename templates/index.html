@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chem Resolver</title>
+  <title>ChemRes</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5' fill='none' stroke='%2322d3ee' stroke-width='9' stroke-linejoin='round'/><circle cx='50' cy='50' r='23' fill='none' stroke='%2322d3ee' stroke-width='7'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,12 +37,11 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </button>
-      <h1><span class="h1-primary">Chem</span><span class="h1-validator">&nbsp;&nbsp;Resolver</span></h1>
+      <h1><span class="h1-primary">Chemical</span><span class="h1-validator">&nbsp;&nbsp;Resolver</span></h1>
       <p>Resolve chemical identifiers via the PubChem REST API</p>
     </header>
 
     <section class="card">
-      <p class="card-title">Single Lookup</p>
       <button class="card-reset" id="lookup-reset" aria-label="Clear"
               onclick="document.getElementById('lookup-form').reset();
                        document.getElementById('lookup-result').innerHTML='';
@@ -58,13 +57,15 @@
             hx-swap="innerHTML"
             hx-indicator="#lookup-indicator, #lookup-resolve-spinner"
             hx-on:submit="document.getElementById('lookup-reset').style.display='flex';
-                          document.getElementById('lookup-suggestions').innerHTML='';">
+                          _sugClose(); _sugBlocked=true; setTimeout(function(){_sugBlocked=false;},600);">
         <label for="lookup-input">Chemical Identifier</label>
         <div class="input-row">
           <div class="input-wrap">
             <input type="text" id="lookup-input" name="input"
                    placeholder="e.g. CCO · acetone · 64-17-5 · LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
                    autocomplete="off" spellcheck="false"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false"
+                   aria-controls="lookup-suggestions" aria-haspopup="listbox"
                    hx-get="/suggest"
                    hx-trigger="input changed delay:300ms"
                    hx-target="#lookup-suggestions"
@@ -72,10 +73,9 @@
                    hx-include="this"
                    hx-params="input"
                    hx-indicator="#lookup-suggest-spinner"
-                   hx-on:htmx:after-swap="var d=document.getElementById('lookup-suggestions'); if(!d.textContent.trim()) d.innerHTML='';"
-                   onclick="document.getElementById('lookup-suggestions').innerHTML=''"
-                   onblur="setTimeout(function(){document.getElementById('lookup-suggestions').innerHTML=''},200)">
-            <div id="lookup-suggestions" class="suggest-dropdown"></div>
+                   hx-on:htmx:after-swap="_sugAfterSwap()"
+                   onblur="setTimeout(_sugClose, 200)">
+            <div id="lookup-suggestions" class="suggest-dropdown" role="listbox" aria-label="Suggestions"></div>
             <div class="input-spinner" id="lookup-suggest-spinner"></div>
             <div class="input-spinner" id="lookup-resolve-spinner"></div>
           </div>
@@ -124,30 +124,30 @@
     <div class="modal-box">
       <div class="modal-header">
         <span id="modal-name" class="modal-title"></span>
-        <div class="modal-actions">
-          <button id="modal-dl-btn" class="btn btn-sm">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-              <path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/>
-            </svg>
-            SVG
-          </button>
-          <button id="modal-png-btn" class="btn btn-sm btn-ghost" style="min-width:4.5rem">
-            <svg class="png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
-              <rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/>
-            </svg>
-            <svg class="png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;display:none">
-              <polyline points="2.5,8.5 6,12 13.5,4.5"/>
-            </svg>
-            PNG
-          </button>
-          <button class="modal-close" onclick="closeStructureModal()">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
-              <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
-            </svg>
-          </button>
-        </div>
+        <button class="modal-close" onclick="closeStructureModal()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
+            <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
+          </svg>
+        </button>
       </div>
       <div id="modal-structure" class="modal-structure"></div>
+      <div class="modal-footer">
+        <button id="modal-dl-btn" class="btn btn-sm">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
+            <path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/>
+          </svg>
+          SVG
+        </button>
+        <button id="modal-png-btn" class="btn btn-sm btn-ghost" style="min-width:4.5rem">
+          <svg class="png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px">
+            <rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/>
+          </svg>
+          <svg class="png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;display:none">
+            <polyline points="2.5,8.5 6,12 13.5,4.5"/>
+          </svg>
+          PNG
+        </button>
+      </div>
     </div>
   </div>
 
@@ -165,6 +165,18 @@
     var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('chemres-theme', next);
+
+    // Re-render all visible structures with the new theme.
+    document.querySelectorAll('.structure-wrap[data-sd-rendered]').forEach(function(el) {
+      el.removeAttribute('data-sd-rendered');
+      el.innerHTML = '';
+      drawStructure(el);
+    });
+
+    // Re-render modal if open.
+    if (_modalSmiles && document.getElementById('structure-modal').style.display !== 'none') {
+      openStructureModal(_modalSmiles, _modalName, _modalFormula);
+    }
   }
 
   function currentTheme() {
@@ -218,10 +230,17 @@
     URL.revokeObjectURL(url);
   }
 
-  function openStructureModal(smiles, name) {
+  function formatFormula(f) {
+    return f ? f.replace(/(\d+)/g, '<sub>$1</sub>') : '';
+  }
+
+  function openStructureModal(smiles, name, formula) {
+    _modalSmiles = smiles; _modalName = name; _modalFormula = formula;
     var modal  = document.getElementById('structure-modal');
     var cont   = document.getElementById('modal-structure');
-    document.getElementById('modal-name').textContent = name || smiles;
+    var title  = (name || smiles).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    if (formula) title += ' · ' + formatFormula(formula);
+    document.getElementById('modal-name').innerHTML = title;
     cont.innerHTML = '';
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -242,6 +261,7 @@
     if (evt && evt.target !== document.getElementById('structure-modal')) return;
     document.getElementById('structure-modal').style.display = 'none';
     document.body.style.overflow = '';
+    _modalSmiles = null; _modalName = null; _modalFormula = null;
   }
 
   document.addEventListener('keydown', function(e) {
@@ -253,10 +273,11 @@
 
   function drawStructure(el) {
     if (!el || typeof SmilesDrawer === 'undefined') return;
-    var smiles  = el.getAttribute('data-smiles');
-    var name    = el.getAttribute('data-name') || smiles;
-    var cid     = el.getAttribute('data-cid');
-    var dlName  = cid ? name + '_CID' + cid : name;
+    var smiles   = el.getAttribute('data-smiles');
+    var name     = el.getAttribute('data-name') || smiles;
+    var formula  = el.getAttribute('data-formula') || '';
+    var cid      = el.getAttribute('data-cid');
+    var dlName   = cid ? name + '_CID' + cid : name;
     var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
     var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
     drawer.draw(largest, null, currentTheme(), function(svgEl) {
@@ -283,24 +304,56 @@
       });
       el.appendChild(cpBtn);
 
+      el.setAttribute('data-sd-rendered', '1');
       el.style.display  = '';
       el.style.cursor   = 'zoom-in';
-      el.addEventListener('click', function() { openStructureModal(smiles, name); });
+      el.addEventListener('click', function() { openStructureModal(smiles, name, formula); });
     }, function() { /* keep hidden */ });
   }
 
   // ── Suggestion keyboard navigation ──────────────────────────
   var _sugIdx = -1;
+  var _sugOriginal = '';
+  var _sugBlocked = false;
 
   function _sugItems() {
     return Array.from(document.querySelectorAll('#lookup-suggestions .suggest-item'));
   }
 
   function _sugHighlight(items, idx) {
+    var input = document.getElementById('lookup-input');
     items.forEach(function(el, i) {
-      el.classList.toggle('suggest-item--active', i === idx);
+      var active = i === idx;
+      el.classList.toggle('suggest-item--active', active);
+      el.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-    if (idx >= 0 && items[idx]) items[idx].scrollIntoView({block: 'nearest'});
+    if (idx >= 0 && items[idx]) {
+      items[idx].scrollIntoView({block: 'nearest'});
+      input.value = items[idx].querySelector('.suggest-name').textContent;
+      input.setAttribute('aria-activedescendant', items[idx].id);
+    } else {
+      input.value = _sugOriginal;
+      input.removeAttribute('aria-activedescendant');
+    }
+  }
+
+  function _sugClose() {
+    var input = document.getElementById('lookup-input');
+    var drop  = document.getElementById('lookup-suggestions');
+    if (_sugIdx >= 0) input.value = _sugOriginal;
+    drop.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    _sugIdx = -1;
+  }
+
+  function _sugAfterSwap() {
+    var drop  = document.getElementById('lookup-suggestions');
+    var input = document.getElementById('lookup-input');
+    if (_sugBlocked || !drop.textContent.trim()) { drop.innerHTML = ''; return; }
+    input.setAttribute('aria-expanded', drop.children.length > 0 ? 'true' : 'false');
+    _sugIdx = -1;
+    _sugOriginal = input.value;
   }
 
   document.addEventListener('keydown', function(e) {
@@ -309,6 +362,7 @@
     if (!items.length) { _sugIdx = -1; return; }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      if (_sugIdx === -1) _sugOriginal = document.getElementById('lookup-input').value;
       _sugIdx = Math.min(_sugIdx + 1, items.length - 1);
       _sugHighlight(items, _sugIdx);
     } else if (e.key === 'ArrowUp') {
@@ -317,29 +371,33 @@
       _sugHighlight(items, _sugIdx);
     } else if (e.key === 'Enter' && _sugIdx >= 0) {
       e.preventDefault();
-      items[_sugIdx].dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+      var item = items[_sugIdx];
       _sugIdx = -1;
+      item.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
     } else if (e.key === 'Escape') {
-      document.getElementById('lookup-suggestions').innerHTML = '';
-      _sugIdx = -1;
+      _sugClose();
     }
   });
 
   document.addEventListener('htmx:afterSwap', function(evt) {
     if (evt.detail && evt.detail.target &&
         evt.detail.target.id === 'lookup-suggestions') {
-      _sugIdx = -1;
+      _sugAfterSwap();
     }
   });
 
   document.addEventListener('htmx:afterSettle', function() {
-    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
-      el.setAttribute('data-sd-rendered', '1');
-      drawStructure(el);
-    });
+    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(drawStructure);
+  });
+
+  document.getElementById('lookup-form').addEventListener('htmx:beforeRequest', function() {
+    var btn = this.querySelector('.btn');
+    btn.classList.add('btn--pressed');
+    setTimeout(function() { btn.classList.remove('btn--pressed'); }, 150);
   });
 
   var _batchES = null;
+  var _modalSmiles = null, _modalName = null, _modalFormula = null;
 
   function cancelBatch() {
     if (_batchES) { _batchES.close(); _batchES = null; }
@@ -375,10 +433,7 @@
           document.getElementById('batch-result').innerHTML = ev.data;
           // Skip expand-row structures — they render lazily on first click.
           document.querySelectorAll('.batch-table .structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
-            if (!el.closest('.expand-row')) {
-              el.setAttribute('data-sd-rendered', '1');
-              drawStructure(el);
-            }
+            if (!el.closest('.expand-row')) drawStructure(el);
           });
         });
 
@@ -456,7 +511,6 @@
       // Lazy-render structure on first expand.
       var wrap = expandRow.querySelector('.structure-wrap[data-smiles]:not([data-sd-rendered])');
       if (wrap) {
-        wrap.setAttribute('data-sd-rendered', '1');
         drawStructure(wrap);
       }
     }
@@ -494,6 +548,64 @@
         es.onerror = function() { es.close(); btn.disabled = false; btn.textContent = '↺'; };
       })
       .catch(function() { btn.disabled = false; btn.textContent = '↺'; });
+  }
+
+  function sortBatchTable(th, colIdx, mode) {
+    var table = th.closest('table');
+    var tbody = table.querySelector('tbody');
+    var allThs = th.closest('tr').querySelectorAll('th');
+
+    // Determine sort direction.
+    var asc = !th.classList.contains('sort-asc');
+    allThs.forEach(function(h) { h.classList.remove('sort-asc','sort-desc'); });
+    th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+    var ind = th.querySelector('.sort-indicator');
+    if (ind) ind.textContent = asc ? '↑' : '↓';
+    allThs.forEach(function(h) {
+      if (h !== th) { var i = h.querySelector('.sort-indicator'); if (i) i.textContent = '↕'; }
+    });
+
+    // Collect [dataRow, expandRow|null] pairs.
+    var pairs = [];
+    var rows = Array.from(tbody.children);
+    var i = 0;
+    while (i < rows.length) {
+      var row = rows[i];
+      if (row.classList.contains('expand-row')) { i++; continue; }
+      var next = rows[i + 1];
+      var expandRow = (next && next.classList.contains('expand-row')) ? next : null;
+      pairs.push([row, expandRow]);
+      i += expandRow ? 2 : 1;
+    }
+
+    // Sort pairs by cell content.
+    pairs.sort(function(a, b) {
+      var av, bv;
+      if (mode === 'status') {
+        av = a[0].dataset.status || '';
+        bv = b[0].dataset.status || '';
+      } else {
+        var ac = a[0].cells[colIdx], bc = b[0].cells[colIdx];
+        av = ac ? ac.textContent.trim() : '';
+        bv = bc ? bc.textContent.trim() : '';
+      }
+      if (mode === 'num') {
+        av = parseFloat(av) || 0;
+        bv = parseFloat(bv) || 0;
+        return asc ? av - bv : bv - av;
+      }
+      return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+
+    // Collapse all expand rows before reinserting.
+    document.querySelectorAll('.expand-row').forEach(function(r) { r.style.display = 'none'; });
+    document.querySelectorAll('.expandable-row').forEach(function(r) { r.classList.remove('row-expanded'); });
+
+    // Reinsert pairs in sorted order.
+    pairs.forEach(function(pair) {
+      tbody.appendChild(pair[0]);
+      if (pair[1]) tbody.appendChild(pair[1]);
+    });
   }
 
   function showBatchError(msg) {

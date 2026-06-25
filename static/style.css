@@ -2,7 +2,7 @@
    chem-resolver — Deep Lab Dark  (+ light theme via data-theme)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700..720&family=Fira+Code:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600..720&family=Fira+Code:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
 
 /* ── Light theme (default) ───────────────────────────────────── */
 :root {
@@ -64,6 +64,16 @@
   --found-glow-far:      rgba(5,150,105,0.05);
   --invalid-glow:        rgba(220,38,38,0.10);
   --structure-bg:        #ffffff;
+
+  /* ── Type scale ── */
+  --fs-display: 2.1rem;    /* h1 */
+  --fs-name:    1.25rem;   /* compound name subtitle */
+  --fs-heading: 0.9rem;    /* modal + expand titles */
+  --fs-body:    0.88rem;   /* input, textarea, result values */
+  --fs-data:    0.82rem;   /* code values, table content */
+  --fs-ui:      0.75rem;   /* tooltips, links */
+  --fs-label:   0.68rem;   /* field labels, hints, buttons */
+  --fs-micro:   0.62rem;   /* badges, chips, footer */
 }
 
 /* ── Dark theme override ─────────────────────────────────────── */
@@ -76,7 +86,7 @@
   --border-hi:    #28405e;
 
   --text:         #d4e4f4;
-  --text-muted:   #547090;
+  --text-muted:   #6080a0;
   --text-faint:   #4a6a8a;
 
   --accent:       #22d3ee;
@@ -96,7 +106,7 @@
   --warn-bg:     rgba(180,83,9,0.08);
   --warn-border: #92400e;
   --warn-text:   #fbbf24;
-  --warn-badge:  #b45309;
+  --warn-badge:  #d97706;
 
   --error-bg:     rgba(185,28,28,0.07);
   --error-border: #991b1b;
@@ -118,7 +128,7 @@
   --found-glow-near:     rgba(5,150,105,0.10);
   --found-glow-far:      rgba(5,150,105,0.08);
   --invalid-glow:        rgba(153,27,27,0.15);
-  --structure-bg:        #ffffff;
+  --structure-bg:        #0d1424;
 }
 
 /* ── Reset ───────────────────────────────────────────────────── */
@@ -169,7 +179,7 @@ body {
 
 .site-header h1 {
   font-family: var(--font-display);
-  font-size: 2.1rem;
+  font-size: var(--fs-display);
   letter-spacing: -0.02em;
   margin-bottom: 0.4rem;
   line-height: 1;
@@ -187,7 +197,7 @@ body {
 
 .site-header p {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   color: var(--text-faint);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -242,7 +252,7 @@ body {
   gap: 0.4rem;
   padding: 0.6rem 1.4rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 500;
   color: var(--text-muted);
   background: transparent;
@@ -264,7 +274,7 @@ body {
 }
 
 .tab-version {
-  font-size: 0.62rem;
+  font-size: var(--fs-micro);
   color: var(--text-faint);
 }
 
@@ -296,7 +306,7 @@ body {
   border-radius: var(--radius);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -321,7 +331,7 @@ body {
 
 .card-title {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -360,15 +370,15 @@ body {
 .card-title-hint-wrap .card-title-tooltip {
   position: absolute;
   bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  transform: none;
   background: var(--surface);
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: var(--fs-ui);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -388,7 +398,7 @@ body {
 label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-label);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -402,7 +412,7 @@ input[type="text"] {
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   color: var(--text);
   background: var(--bg);
   outline: none;
@@ -419,7 +429,7 @@ input[type="text"]:focus {
 
 input[type="file"] {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: var(--fs-ui);
   color: var(--text-muted);
   margin-bottom: 0.9rem;
   display: block;
@@ -433,7 +443,7 @@ input[type="file"]::file-selector-button {
   border-radius: var(--radius);
   padding: 0.35rem 0.85rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--fs-label);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -450,7 +460,7 @@ input[type="file"]::file-selector-button:hover {
 
 .hint {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--fs-label);
   color: var(--text-faint);
   margin-bottom: 0.9rem;
   margin-top: -0.5rem;
@@ -465,10 +475,10 @@ input[type="file"]::file-selector-button:hover {
   background: var(--accent);
   color: var(--bg);
   border: none;
-  padding: 0.55rem 1.4rem;
+  padding: 0.8rem 1.4rem;
   border-radius: var(--radius);
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: var(--fs-ui);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -481,11 +491,12 @@ input[type="file"]::file-selector-button:hover {
   box-shadow: 0 0 20px var(--accent-glow-btn);
 }
 
-.btn:active { transform: scale(0.98); }
+.btn:active,
+.btn--pressed { transform: scale(0.98); background: var(--accent-hover); }
 
 .btn-sm {
   padding: 0.35rem 0.85rem;
-  font-size: 0.68rem;
+  font-size: var(--fs-label);
 }
 
 .btn-ghost {
@@ -507,7 +518,7 @@ input[type="file"]::file-selector-button:hover {
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--fs-label);
   color: var(--text-faint);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -570,7 +581,7 @@ input[type="file"]::file-selector-button:hover {
 .status-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -602,7 +613,7 @@ input[type="file"]::file-selector-button:hover {
 
 .result-fields td:first-child {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -613,7 +624,7 @@ input[type="file"]::file-selector-button:hover {
 }
 
 .result-fields td:last-child {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   color: var(--text);
   overflow: hidden;
   min-width: 0;
@@ -623,7 +634,7 @@ input[type="file"]::file-selector-button:hover {
   color: var(--accent);
   text-decoration: none;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: var(--fs-data);
 }
 
 .result-fields a:hover {
@@ -633,7 +644,7 @@ input[type="file"]::file-selector-button:hover {
 
 .code-value {
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: var(--fs-data);
 }
 
 /* ── Progress bar ────────────────────────────────────────────── */
@@ -687,6 +698,9 @@ input[type="file"]::file-selector-button:hover {
   gap: 0.5rem;
   margin-bottom: 0.9rem;
 }
+
+.input-row .btn { height: 2.75rem; }
+.input-row input[type="text"] { height: 2.75rem; }
 
 .input-row input[type="text"] {
   flex: 1;
@@ -753,6 +767,23 @@ input[type="file"]::file-selector-button:hover {
 .suggest-dropdown:not(:empty) {
   border: 1px solid var(--border-mid);
   box-shadow: var(--shadow-md);
+  animation: suggestIn 0.1s ease;
+}
+
+@keyframes suggestIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.suggest-dropdown:not(:empty)::after {
+  content: '↑ ↓ navigate · Enter select';
+  display: block;
+  padding: 0.3rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  border-top: 1px solid var(--border);
 }
 
 .suggest-list {
@@ -777,7 +808,7 @@ input[type="file"]::file-selector-button:hover {
 
 .suggest-code {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-data);
   font-weight: 500;
   color: var(--accent);
   white-space: nowrap;
@@ -786,7 +817,7 @@ input[type="file"]::file-selector-button:hover {
 
 .suggest-name {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-data);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -804,7 +835,7 @@ input[type="file"]::file-selector-button:hover {
 
 .similar-label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -882,7 +913,7 @@ details { margin-top: 1rem; }
 
 details summary {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -914,7 +945,7 @@ details summary::-webkit-details-marker { display: none; }
   background: var(--warn-bg);
   border: 1px solid var(--warn-border);
   color: var(--warn-text);
-  font-size: 0.82rem;
+  font-size: var(--fs-data);
   margin-top: 0.75rem;
   font-family: var(--font-mono);
 }
@@ -937,7 +968,7 @@ details summary::-webkit-details-marker { display: none; }
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.08em;
   padding: 0.25em 0.7em;
@@ -954,21 +985,31 @@ details summary::-webkit-details-marker { display: none; }
 .batch-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: var(--fs-data);
 }
 
 .batch-table th {
   text-align: left;
   padding: 0.5rem 0.75rem;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-faint);
   border-bottom: 1px solid var(--border-mid);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 2;
 }
+
+.batch-table th.sortable { cursor: pointer; user-select: none; }
+.batch-table th.sortable:hover { color: var(--text-muted); }
+.batch-table th .sort-indicator { margin-left: 0.3em; opacity: 0.4; }
+.batch-table th.sort-asc .sort-indicator,
+.batch-table th.sort-desc .sort-indicator { opacity: 1; color: var(--accent); }
 
 .batch-table td {
   padding: 0.5rem 0.75rem;
@@ -981,19 +1022,19 @@ details summary::-webkit-details-marker { display: none; }
 
 .batch-table .col-code {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-data);
   color: var(--text);
 }
 
 .batch-table .col-name {
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: var(--fs-data);
   max-width: 280px;
 }
 
 .batch-table .col-time {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-micro);
   color: var(--text-faint);
   white-space: nowrap;
 }
@@ -1002,7 +1043,7 @@ details summary::-webkit-details-marker { display: none; }
 .chip {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--fs-micro);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1030,7 +1071,7 @@ details summary::-webkit-details-marker { display: none; }
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   color: var(--text-faint);
-  font-size: 0.8rem;
+  font-size: var(--fs-data);
   cursor: pointer;
   vertical-align: middle;
   transition: color 0.15s, border-color 0.15s;
@@ -1051,7 +1092,7 @@ details summary::-webkit-details-marker { display: none; }
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: var(--fs-ui);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
@@ -1070,7 +1111,7 @@ details summary::-webkit-details-marker { display: none; }
 .row-chevron {
   display: inline-block;
   color: var(--text-faint);
-  font-size: 0.85rem;
+  font-size: var(--fs-data);
   transition: transform 0.18s ease;
   line-height: 1;
 }
@@ -1105,18 +1146,26 @@ details summary::-webkit-details-marker { display: none; }
   justify-content: center;
 }
 
+.expand-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-heading);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
 .expand-field {
   display: flex;
   gap: 0.6rem;
   align-items: baseline;
-  font-size: 0.78rem;
+  font-size: var(--fs-data);
 }
 
 .expand-label {
   flex-shrink: 0;
   width: 4.5rem;
   color: var(--text-faint);
-  font-size: 0.65rem;
+  font-size: var(--fs-micro);
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -1124,14 +1173,14 @@ details summary::-webkit-details-marker { display: none; }
 
 .expand-code {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-data);
   color: var(--text-muted);
   word-break: break-all;
 }
 
 .expand-link {
   color: var(--accent);
-  font-size: 0.75rem;
+  font-size: var(--fs-ui);
   text-decoration: none;
 }
 .expand-link:hover { text-decoration: underline; }
@@ -1144,7 +1193,7 @@ details summary::-webkit-details-marker { display: none; }
   padding: 1.25rem 2rem 2rem;
   border-top: 1px solid var(--border);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: var(--fs-label);
   color: var(--text-faint);
   letter-spacing: 0.04em;
   display: flex;
@@ -1163,6 +1212,15 @@ details summary::-webkit-details-marker { display: none; }
 .site-footer a:hover { color: var(--accent); }
 
 /* ── Result body (two-column: fields + structure) ────────────── */
+.result-common-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-name);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+
 .result-body {
   display: flex;
   gap: 1.25rem;
@@ -1176,8 +1234,13 @@ details summary::-webkit-details-marker { display: none; }
 
 /* Narrow screens: stack vertically, structure moves below fields */
 @media (max-width: 520px) {
+  /* ── Single lookup ── */
   .result-body {
     flex-direction: column;
+  }
+
+  .structure-col {
+    width: 100%;
   }
 
   .structure-wrap {
@@ -1192,10 +1255,34 @@ details summary::-webkit-details-marker { display: none; }
     width: 100%;
   }
 
-  .input-row .btn {
-    width: 100%;
-    justify-content: center;
+  .btn {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
   }
+
+  /* ── Batch table: hide Formula / MW / CAS — expand card shows them ── */
+  .batch-table th:nth-child(4),
+  .batch-table td:nth-child(4),
+  .batch-table th:nth-child(5),
+  .batch-table td:nth-child(5),
+  .batch-table th:nth-child(6),
+  .batch-table td:nth-child(6) { display: none; }
+
+  /* ── Batch file input: own line so Resolve All wraps alone ── */
+  input[type="file"] { width: 100%; }
+
+  /* ── Summary bar: allow pills to wrap ── */
+  .summary-bar { flex-wrap: wrap; gap: 0.4rem; }
+
+  /* ── Expand card: stack structure above fields ── */
+  .expand-card { flex-direction: column; }
+  .expand-structure {
+    align-self: center;
+  }
+
+  /* ── Structure modal: fit screen width ── */
+  .modal-box { width: 95vw; }
+  #modal-structure svg { max-width: 100%; height: auto; }
 }
 
 /* ── Structure image (specimen on substrate) ─────────────────── */
@@ -1217,7 +1304,24 @@ details summary::-webkit-details-marker { display: none; }
 
 .structure-wrap svg {
   display: block;
+  max-width: 100%;
+  height: auto;
 }
+
+.structure-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.structure-pubchem-link {
+  font-size: var(--fs-ui);
+  color: var(--text-faint);
+  text-decoration: none;
+  margin-top: 0.3rem;
+  letter-spacing: 0.04em;
+}
+.structure-pubchem-link:hover { color: var(--accent); }
 
 /* Download button — appears on hover */
 .structure-dl {
@@ -1264,9 +1368,12 @@ details summary::-webkit-details-marker { display: none; }
   background: var(--surface);
   border: 1px solid var(--border-mid);
   border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  padding: 0;
   box-shadow: var(--shadow-md);
   max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-header {
@@ -1274,23 +1381,31 @@ details summary::-webkit-details-marker { display: none; }
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
+  padding: 1rem 1.25rem 0.75rem;
 }
 
 .modal-title {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--fs-heading);
+  font-weight: 600;
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 280px;
+  max-width: 340px;
 }
 
-.modal-actions {
+
+.modal-footer {
   display: flex;
+  justify-content: flex-end;
   gap: 0.5rem;
-  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.modal-structure {
+  padding: 0.5rem 1.25rem;
 }
 
 .modal-close {
@@ -1316,7 +1431,6 @@ details summary::-webkit-details-marker { display: none; }
 .modal-structure {
   background: var(--structure-bg);
   border-radius: var(--radius);
-  padding: 0.5rem;
   line-height: 0;
 }
 
@@ -1327,7 +1441,7 @@ textarea {
   border: 1px solid var(--border-mid);
   border-radius: var(--radius);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--text);
   background: var(--bg);
   outline: none;
@@ -1356,7 +1470,7 @@ textarea:focus {
 
 .synonym-tag {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-micro);
   background: var(--accent-bg-faint);
   border: 1px solid var(--border-mid);
   border-radius: 2px;

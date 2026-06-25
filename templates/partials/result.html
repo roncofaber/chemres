@@ -5,6 +5,7 @@
 </div>
 {{else}}
 <div class="result-box valid">
+  {{if .CommonName}}<p class="result-common-name">{{.CommonName}}</p>{{end}}
   <div class="result-body">
     <table class="result-fields">
     <tr class="copyable-row">
@@ -19,7 +20,7 @@
     <tr class="copyable-row">
       <td>Formula</td>
       <td>
-        <span class="field-value code-value">{{.Formula}}</span>
+        <span class="field-value code-value">{{formatFormula .Formula}}</span>
         <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy formula">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
@@ -85,7 +86,10 @@
     </tr>
   </table>
   {{if .Canonical}}
-  <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" style="display:none"></div>
+  <div class="structure-col">
+    <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:none"></div>
+    {{if .CID}}<a class="structure-pubchem-link" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">PubChem ↗</a>{{end}}
+  </div>
   {{end}}
   </div>{{/* end result-body */}}
   {{if .Synonyms}}

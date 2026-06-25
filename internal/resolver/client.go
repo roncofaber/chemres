@@ -22,7 +22,7 @@ import (
 
 const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 const pubchemAutocomplete = "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete"
-const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES"
+const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES,Title"
 
 const (
 	rateLimitPerSec = 4
@@ -145,6 +145,7 @@ type propertyRow struct {
 	IsomericSMILES     string `json:"IsomericSMILES"`
 	SMILES             string `json:"SMILES"`
 	ConnectivitySMILES string `json:"ConnectivitySMILES"`
+	Title              string `json:"Title"`
 }
 
 type propertyTable struct {

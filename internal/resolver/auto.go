@@ -134,9 +134,11 @@ func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, o
 					continue
 				}
 				for _, i := range idxs {
-					results[i].CAS        = entry.CAS
-					results[i].Synonyms   = entry.Synonyms
-					results[i].CommonName = firstCommonName(entry.Synonyms)
+					results[i].CAS     = entry.CAS
+					results[i].Synonyms = entry.Synonyms
+					if results[i].CommonName == "" {
+						results[i].CommonName = firstCommonName(entry.Synonyms)
+					}
 				}
 			}
 		}

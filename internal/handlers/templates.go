@@ -3,10 +3,36 @@ package handlers
 import (
 	"html/template"
 	"path/filepath"
+	"regexp"
 )
 
+var digitRE = regexp.MustCompile(`\d+`)
+
+func formatFormula(f string) template.HTML {
+	return template.HTML(digitRE.ReplaceAllStringFunc(f, func(d string) string {
+		return "<sub>" + d + "</sub>"
+	}))
+}
+
+// compoundTitle returns "Name · Formula" as safe HTML, handling missing fields.
+func compoundTitle(name, formula string) template.HTML {
+	escaped := template.HTMLEscapeString(name)
+	if name != "" && formula != "" {
+		escaped += " · "
+	}
+	if formula != "" {
+		escaped += string(formatFormula(formula))
+	}
+	return template.HTML(escaped)
+}
+
+var funcMap = template.FuncMap{
+	"formatFormula":  formatFormula,
+	"compoundTitle":  compoundTitle,
+}
+
 func MustLoadTemplates(dir string) *template.Template {
-	tmpl, err := template.ParseGlob(filepath.Join(dir, "*.html"))
+	tmpl, err := template.New("").Funcs(funcMap).ParseGlob(filepath.Join(dir, "*.html"))
 	if err != nil {
 		panic("failed to parse base templates: " + err.Error())
 	}
