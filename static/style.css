@@ -1358,10 +1358,14 @@ details summary::-webkit-details-marker { display: none; }
   inset: 0;
   background: rgba(0,0,0,0.55);
   z-index: 1000;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.15s ease;
+}
+
+.modal-overlay.is-open {
+  display: flex;
 }
 
 .modal-box {

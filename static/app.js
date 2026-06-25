@@ -10,7 +10,7 @@ function toggleTheme() {
     drawStructure(el);
   });
 
-  if (_modalSmiles && document.getElementById('structure-modal').style.display !== 'none') {
+  if (_modalSmiles && document.getElementById('structure-modal').classList.contains('is-open')) {
     openStructureModal(_modalSmiles, _modalName, _modalFormula);
   }
 }
@@ -89,7 +89,7 @@ function openStructureModal(smiles, name, formula) {
   if (formula) title += ' · ' + formatFormula(formula);
   document.getElementById('modal-name').innerHTML = title;
   cont.innerHTML = '';
-  modal.style.display = 'flex';
+  modal.classList.add("is-open");
   document.body.style.overflow = 'hidden';
 
   var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
@@ -105,7 +105,7 @@ function openStructureModal(smiles, name, formula) {
 }
 
 function closeStructureModal() {
-  document.getElementById('structure-modal').style.display = 'none';
+  document.getElementById('structure-modal').classList.remove('is-open');
   document.body.style.overflow = '';
   _modalSmiles = null; _modalName = null; _modalFormula = null;
 }
