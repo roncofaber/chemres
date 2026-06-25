@@ -20,22 +20,22 @@
     <table class="batch-table">
       <thead>
         <tr>
-          <th class="sortable" onclick="sortBatchTable(this,0,'text')">Input<span class="sort-indicator">↕</span></th>
-          <th class="sortable" onclick="sortBatchTable(this,1,'status')">Status<span class="sort-indicator">↕</span></th>
-          <th class="sortable" onclick="sortBatchTable(this,2,'text')">IUPAC<span class="sort-indicator">↕</span></th>
-          <th class="sortable" onclick="sortBatchTable(this,3,'text')">Formula<span class="sort-indicator">↕</span></th>
-          <th class="sortable" onclick="sortBatchTable(this,4,'num')">MW<span class="sort-indicator">↕</span></th>
-          <th class="sortable" onclick="sortBatchTable(this,5,'text')">CAS<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="0" data-sort-mode="text">Input<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="1" data-sort-mode="status">Status<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="2" data-sort-mode="text">IUPAC<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="3" data-sort-mode="text">Formula<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="4" data-sort-mode="num">MW<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="5" data-sort-mode="text">CAS<span class="sort-indicator">↕</span></th>
           <th class="expand-chevron"></th>
         </tr>
       </thead>
       <tbody>
         {{range .Results}}
         {{$found := eq .Error ""}}
-        <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}"{{if $found}} class="expandable-row" onclick="toggleBatchRow(this)"{{end}}>
+        <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}"{{if $found}} class="expandable-row"{{end}}>
           <td class="col-code">{{.Input}}</td>
           <td class="col-status">
-            {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag" title="{{.Error}}">Error</span><button class="btn-retry" data-input="{{.Input}}" onclick="retryRow(this)" title="Retry">↺</button>{{end}}
+            {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag" title="{{.Error}}">Error</span><button class="btn-retry" data-input="{{.Input}}" title="Retry">↺</button>{{end}}
             {{else}}<span class="chip valid">Found</span>{{end}}
           </td>
           <td class="col-name">{{.IUPAC}}</td>
@@ -47,7 +47,7 @@
         {{if $found}}
         <tr class="expand-row" style="display:none">
           <td colspan="7" class="expand-cell">
-            <div class="expand-card" onclick="event.stopPropagation()">
+            <div class="expand-card">
               {{if .Canonical}}
               <div class="structure-wrap expand-structure" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:block"></div>
               {{end}}

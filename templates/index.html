@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{.Theme}}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +7,10 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5' fill='none' stroke='%2322d3ee' stroke-width='9' stroke-linejoin='round'/><circle cx='50' cy='50' r='23' fill='none' stroke='%2322d3ee' stroke-width='7'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <script>
-    (function(){
-      var t=localStorage.getItem('chemres-theme')||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-      document.documentElement.setAttribute('data-theme',t);
-    })();
-  </script>
   <link rel="stylesheet" href="/static/style.css">
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <script src="https://unpkg.com/smiles-drawer@2/dist/smiles-drawer.min.js"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="https://unpkg.com/smiles-drawer@2/dist/smiles-drawer.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
 </head>
 <body>
   <div class="page-wrap">
@@ -25,7 +19,7 @@
         <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
         <circle cx="50" cy="50" r="24" stroke-width="1"/>
       </svg>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <button class="theme-toggle" title="Toggle theme">
         <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4"/>
           <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
@@ -42,12 +36,7 @@
     </header>
 
     <section class="card">
-      <button class="card-reset" id="lookup-reset" aria-label="Clear"
-              onclick="document.getElementById('lookup-form').reset();
-                       document.getElementById('lookup-result').innerHTML='';
-                       document.getElementById('lookup-suggestions').innerHTML='';
-                       this.style.display='none';"
-              style="display:none">
+      <button class="card-reset" id="lookup-reset" aria-label="Clear" style="display:none">
         {{template "icon/rotate-ccw" .}}
         Clear
       </button>
@@ -55,9 +44,7 @@
             hx-post="/resolve"
             hx-target="#lookup-result"
             hx-swap="innerHTML"
-            hx-indicator="#lookup-indicator, #lookup-resolve-spinner"
-            hx-on:submit="document.getElementById('lookup-reset').style.display='flex';
-                          _sugClose(); _sugBlocked=true; setTimeout(function(){_sugBlocked=false;},600);">
+            hx-indicator="#lookup-indicator, #lookup-resolve-spinner">
         <label for="lookup-input">Chemical Identifier</label>
         <div class="input-row">
           <div class="input-wrap">
@@ -72,9 +59,7 @@
                    hx-swap="innerHTML"
                    hx-include="this"
                    hx-params="input"
-                   hx-indicator="#lookup-suggest-spinner"
-                   hx-on:htmx:after-swap="_sugAfterSwap()"
-                   onblur="setTimeout(_sugClose, 200)">
+                   hx-indicator="#lookup-suggest-spinner">
             <div id="lookup-suggestions" class="suggest-dropdown" role="listbox" aria-label="Suggestions"></div>
             <div class="input-spinner" id="lookup-suggest-spinner"></div>
             <div class="input-spinner" id="lookup-resolve-spinner"></div>
@@ -88,16 +73,11 @@
 
     <section class="card">
       <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">?</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span></p>
-      <button class="card-reset" id="batch-reset" aria-label="Clear"
-              onclick="document.getElementById('batch-form').reset();
-                       document.getElementById('batch-result').innerHTML='';
-                       hideBatchProgress();
-                       this.style.display='none';"
-              style="display:none">
+      <button class="card-reset" id="batch-reset" aria-label="Clear" style="display:none">
         {{template "icon/rotate-ccw" .}}
         Clear
       </button>
-      <form id="batch-form" onsubmit="startBatch(event)">
+      <form id="batch-form">
         <label for="batch-inputs">Identifiers (one per line)</label>
         <textarea id="batch-inputs" name="inputs" rows="5"
                   placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
@@ -113,18 +93,18 @@
           <div class="progress-fill" id="batch-progress-fill"></div>
         </div>
         <span id="batch-indicator" class="indicator">Processing</span>
-        <button class="btn-cancel-batch" id="batch-cancel" onclick="cancelBatch()" title="Cancel" style="display:none">✕</button>
+        <button class="btn-cancel-batch" id="batch-cancel" title="Cancel" style="display:none">✕</button>
       </div>
       <div id="batch-result"></div>
     </section>
   </div>
 
   <!-- Structure modal -->
-  <div id="structure-modal" class="modal-overlay" style="display:none" onclick="closeStructureModal(event)">
+  <div id="structure-modal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
         <span id="modal-name" class="modal-title"></span>
-        <button class="modal-close" onclick="closeStructureModal()">
+        <button class="modal-close">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
             <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
           </svg>
@@ -159,461 +139,5 @@
         <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
       </svg>GitHub</a>
   </footer>
-
-  <script>
-  function toggleTheme() {
-    var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('chemres-theme', next);
-
-    // Re-render all visible structures with the new theme.
-    document.querySelectorAll('.structure-wrap[data-sd-rendered]').forEach(function(el) {
-      el.removeAttribute('data-sd-rendered');
-      el.innerHTML = '';
-      drawStructure(el);
-    });
-
-    // Re-render modal if open.
-    if (_modalSmiles && document.getElementById('structure-modal').style.display !== 'none') {
-      openStructureModal(_modalSmiles, _modalName, _modalFormula);
-    }
-  }
-
-  function currentTheme() {
-    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  }
-
-  function copyAsPng(svgEl, btn) {
-    var src = new XMLSerializer().serializeToString(svgEl);
-    if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
-    var blob = new Blob([src], {type: 'image/svg+xml;charset=utf-8'});
-    var url  = URL.createObjectURL(blob);
-    var img  = new Image();
-    img.onload = function() {
-      var canvas = document.createElement('canvas');
-      canvas.width  = img.naturalWidth  || 420;
-      canvas.height = img.naturalHeight || 360;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(function(pngBlob) {
-        var icon  = btn.querySelector('.png-icon,.structure-png-icon');
-        var check = btn.querySelector('.png-check,.structure-png-check');
-        function flash() {
-          if (icon)  icon.style.display  = 'none';
-          if (check) check.style.display = 'block';
-          setTimeout(function() {
-            if (icon)  icon.style.display  = '';
-            if (check) check.style.display = 'none';
-          }, 1500);
-        }
-        navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob})])
-          .then(flash).catch(flash);
-      }, 'image/png');
-    };
-    img.src = url;
-  }
-
-  function downloadSvg(svgEl, name) {
-    var src = new XMLSerializer().serializeToString(svgEl);
-    if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
-    var blob = new Blob([src], {type: 'image/svg+xml;charset=utf-8'});
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href   = url;
-    a.download = (name || 'structure').replace(/[^\w-]/g, '_').substring(0, 60) + '.svg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function formatFormula(f) {
-    return f ? f.replace(/(\d+)/g, '<sub>$1</sub>') : '';
-  }
-
-  function openStructureModal(smiles, name, formula) {
-    _modalSmiles = smiles; _modalName = name; _modalFormula = formula;
-    var modal  = document.getElementById('structure-modal');
-    var cont   = document.getElementById('modal-structure');
-    var title  = (name || smiles).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    if (formula) title += ' · ' + formatFormula(formula);
-    document.getElementById('modal-name').innerHTML = title;
-    cont.innerHTML = '';
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-
-    var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
-    var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, currentTheme(), function(svgEl) {
-      cont.appendChild(svgEl);
-      var pngBtn = document.getElementById('modal-png-btn');
-      document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
-      pngBtn.onclick = function() { copyAsPng(svgEl, pngBtn); };
-    }, function() {
-      cont.innerHTML = '<p style="color:var(--error-text);padding:1rem;font-family:var(--font-mono);font-size:0.8rem">Could not render structure.</p>';
-    });
-  }
-
-  function closeStructureModal(evt) {
-    if (evt && evt.target !== document.getElementById('structure-modal')) return;
-    document.getElementById('structure-modal').style.display = 'none';
-    document.body.style.overflow = '';
-    _modalSmiles = null; _modalName = null; _modalFormula = null;
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.getElementById('structure-modal').style.display = 'none';
-      document.body.style.overflow = '';
-    }
-  });
-
-  function drawStructure(el) {
-    if (!el || typeof SmilesDrawer === 'undefined') return;
-    var smiles   = el.getAttribute('data-smiles');
-    var name     = el.getAttribute('data-name') || smiles;
-    var formula  = el.getAttribute('data-formula') || '';
-    var cid      = el.getAttribute('data-cid');
-    var dlName   = cid ? name + '_CID' + cid : name;
-    var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
-    var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
-    drawer.draw(largest, null, currentTheme(), function(svgEl) {
-      el.innerHTML = '';
-      el.appendChild(svgEl);
-
-      var dlBtn = document.createElement('button');
-      dlBtn.className = 'structure-dl';
-      dlBtn.title = 'Download SVG';
-      dlBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/></svg>';
-      dlBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        downloadSvg(svgEl, dlName);
-      });
-      el.appendChild(dlBtn);
-
-      var cpBtn = document.createElement('button');
-      cpBtn.className = 'structure-dl structure-dl--png';
-      cpBtn.title = 'Copy PNG';
-      cpBtn.innerHTML = '<svg class="structure-png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/></svg><svg class="structure-png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="2.5,8.5 6,12 13.5,4.5"/></svg>';
-      cpBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        copyAsPng(svgEl, cpBtn);
-      });
-      el.appendChild(cpBtn);
-
-      el.setAttribute('data-sd-rendered', '1');
-      el.style.display  = '';
-      el.style.cursor   = 'zoom-in';
-      el.addEventListener('click', function() { openStructureModal(smiles, name, formula); });
-    }, function() { /* keep hidden */ });
-  }
-
-  // ── Suggestion keyboard navigation ──────────────────────────
-  var _sugIdx = -1;
-  var _sugOriginal = '';
-  var _sugBlocked = false;
-
-  function _sugItems() {
-    return Array.from(document.querySelectorAll('#lookup-suggestions .suggest-item'));
-  }
-
-  function _sugHighlight(items, idx) {
-    var input = document.getElementById('lookup-input');
-    items.forEach(function(el, i) {
-      var active = i === idx;
-      el.classList.toggle('suggest-item--active', active);
-      el.setAttribute('aria-selected', active ? 'true' : 'false');
-    });
-    if (idx >= 0 && items[idx]) {
-      items[idx].scrollIntoView({block: 'nearest'});
-      input.value = items[idx].querySelector('.suggest-name').textContent;
-      input.setAttribute('aria-activedescendant', items[idx].id);
-    } else {
-      input.value = _sugOriginal;
-      input.removeAttribute('aria-activedescendant');
-    }
-  }
-
-  function _sugClose() {
-    var input = document.getElementById('lookup-input');
-    var drop  = document.getElementById('lookup-suggestions');
-    if (_sugIdx >= 0) input.value = _sugOriginal;
-    drop.innerHTML = '';
-    input.setAttribute('aria-expanded', 'false');
-    input.removeAttribute('aria-activedescendant');
-    _sugIdx = -1;
-  }
-
-  function _sugAfterSwap() {
-    var drop  = document.getElementById('lookup-suggestions');
-    var input = document.getElementById('lookup-input');
-    if (_sugBlocked || !drop.textContent.trim()) { drop.innerHTML = ''; return; }
-    input.setAttribute('aria-expanded', drop.children.length > 0 ? 'true' : 'false');
-    _sugIdx = -1;
-    _sugOriginal = input.value;
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (document.activeElement !== document.getElementById('lookup-input')) return;
-    var items = _sugItems();
-    if (!items.length) { _sugIdx = -1; return; }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (_sugIdx === -1) _sugOriginal = document.getElementById('lookup-input').value;
-      _sugIdx = Math.min(_sugIdx + 1, items.length - 1);
-      _sugHighlight(items, _sugIdx);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      _sugIdx = Math.max(_sugIdx - 1, -1);
-      _sugHighlight(items, _sugIdx);
-    } else if (e.key === 'Enter' && _sugIdx >= 0) {
-      e.preventDefault();
-      var item = items[_sugIdx];
-      _sugIdx = -1;
-      item.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
-    } else if (e.key === 'Escape') {
-      _sugClose();
-    }
-  });
-
-  document.addEventListener('htmx:afterSwap', function(evt) {
-    if (evt.detail && evt.detail.target &&
-        evt.detail.target.id === 'lookup-suggestions') {
-      _sugAfterSwap();
-    }
-  });
-
-  document.addEventListener('htmx:afterSettle', function() {
-    document.querySelectorAll('.structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(drawStructure);
-  });
-
-  document.getElementById('lookup-form').addEventListener('htmx:beforeRequest', function(evt) {
-    if (evt.detail.requestConfig.verb !== 'post') return;
-    var btn = this.querySelector('.btn');
-    btn.classList.add('btn--pressed');
-    setTimeout(function() { btn.classList.remove('btn--pressed'); }, 150);
-  });
-
-  var _batchES = null;
-  var _modalSmiles = null, _modalName = null, _modalFormula = null;
-
-  function cancelBatch() {
-    if (_batchES) { _batchES.close(); _batchES = null; }
-    hideBatchProgress();
-  }
-
-  function startBatch(e) {
-    e.preventDefault();
-    var form = document.getElementById('batch-form');
-    var data = new FormData(form);
-
-    document.getElementById('batch-result').innerHTML = '';
-    document.getElementById('batch-reset').style.display = 'flex';
-    showBatchProgress(0, 'Starting…');
-
-    fetch('/batch/start', { method: 'POST', body: data })
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.error) { hideBatchProgress(); showBatchError(res.error); return; }
-        var es = new EventSource('/batch/stream?job=' + res.job);
-        _batchES = es;
-
-        es.addEventListener('progress', function(ev) {
-          var parts = ev.data.split('/');
-          var done = parseInt(parts[0], 10);
-          var tot  = parseInt(parts[1], 10);
-          showBatchProgress(done / tot, done + ' / ' + tot);
-        });
-
-        es.addEventListener('done', function(ev) {
-          es.close(); _batchES = null;
-          hideBatchProgress();
-          document.getElementById('batch-result').innerHTML = ev.data;
-          // Skip expand-row structures — they render lazily on first click.
-          document.querySelectorAll('.batch-table .structure-wrap[data-smiles]:not([data-sd-rendered])').forEach(function(el) {
-            if (!el.closest('.expand-row')) drawStructure(el);
-          });
-        });
-
-        es.addEventListener('error', function(ev) {
-          es.close(); _batchES = null;
-          hideBatchProgress();
-          showBatchError(ev.data || 'Could not reach PubChem — please try again.');
-        });
-
-        es.onerror = function() {
-          es.close(); _batchES = null;
-          hideBatchProgress();
-          showBatchError('Connection lost — please try again.');
-        };
-      })
-      .catch(function() {
-        hideBatchProgress();
-        showBatchError('Could not reach server.');
-      });
-  }
-
-  function showBatchProgress(fraction, label) {
-    var wrap   = document.getElementById('batch-progress-wrap');
-    var fill   = document.getElementById('batch-progress-fill');
-    var ind    = document.getElementById('batch-indicator');
-    var cancel = document.getElementById('batch-cancel');
-    wrap.style.display   = 'flex';
-    fill.style.width     = (fraction * 100) + '%';
-    ind.textContent      = label || 'Processing';
-    ind.style.display    = 'inline-flex';
-    cancel.style.display = 'inline-flex';
-  }
-
-  function hideBatchProgress() {
-    var wrap   = document.getElementById('batch-progress-wrap');
-    var fill   = document.getElementById('batch-progress-fill');
-    var cancel = document.getElementById('batch-cancel');
-    wrap.style.display   = 'none';
-    fill.style.width     = '0%';
-    cancel.style.display = 'none';
-  }
-
-  function updateSummaryPills() {
-    // Only count data rows (those with data-status); skip expand rows.
-    var rows = document.querySelectorAll('.batch-table tbody tr[data-status]');
-    var found = 0, notFound = 0, errors = 0;
-    rows.forEach(function(r) {
-      var s = r.dataset.status;
-      if (s === 'found') found++;
-      else if (s === 'notfound') notFound++;
-      else errors++;
-    });
-    var vp = document.querySelector('.summary-pill.valid');
-    var wp = document.querySelector('.summary-pill.warn');
-    var ip = document.querySelector('.summary-pill.invalid');
-    if (vp) vp.textContent = found + ' found';
-    if (wp) wp.textContent = notFound + ' not found';
-    if (ip) { ip.textContent = errors + ' errors'; ip.style.display = errors > 0 ? '' : 'none'; }
-  }
-
-  function toggleBatchRow(row) {
-    var expandRow = row.nextElementSibling;
-    if (!expandRow || !expandRow.classList.contains('expand-row')) return;
-    var isOpen = expandRow.style.display !== 'none';
-    // Collapse all open rows first.
-    document.querySelectorAll('.expand-row').forEach(function(r) {
-      r.style.display = 'none';
-    });
-    document.querySelectorAll('.expandable-row').forEach(function(r) {
-      r.classList.remove('row-expanded');
-    });
-    if (!isOpen) {
-      expandRow.style.display = '';
-      row.classList.add('row-expanded');
-      // Lazy-render structure on first expand.
-      var wrap = expandRow.querySelector('.structure-wrap[data-smiles]:not([data-sd-rendered])');
-      if (wrap) {
-        drawStructure(wrap);
-      }
-    }
-  }
-
-  function retryRow(btn) {
-    var input = btn.dataset.input;
-    var row   = btn.closest('tr');
-    btn.disabled    = true;
-    btn.textContent = '…';
-
-    var data = new FormData();
-    data.append('inputs', input);
-
-    fetch('/batch/start', { method: 'POST', body: data })
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.error) { btn.disabled = false; btn.textContent = '↺'; return; }
-        var es = new EventSource('/batch/stream?job=' + res.job);
-        es.addEventListener('done', function(ev) {
-          es.close();
-          var doc  = new DOMParser().parseFromString(ev.data, 'text/html');
-          var newTrs = Array.from(doc.querySelectorAll('tbody tr'));
-          if (!newTrs.length) { btn.disabled = false; btn.textContent = '↺'; return; }
-          // Remove the old expand row sibling if present.
-          var next = row.nextElementSibling;
-          if (next && next.classList.contains('expand-row')) next.remove();
-          // Insert all new rows (data row + optional expand row).
-          var frag = document.createDocumentFragment();
-          newTrs.forEach(function(tr) { frag.appendChild(tr); });
-          row.replaceWith(frag);
-          updateSummaryPills();
-        });
-        es.addEventListener('error', function() { es.close(); btn.disabled = false; btn.textContent = '↺'; });
-        es.onerror = function() { es.close(); btn.disabled = false; btn.textContent = '↺'; };
-      })
-      .catch(function() { btn.disabled = false; btn.textContent = '↺'; });
-  }
-
-  function sortBatchTable(th, colIdx, mode) {
-    var table = th.closest('table');
-    var tbody = table.querySelector('tbody');
-    var allThs = th.closest('tr').querySelectorAll('th');
-
-    // Determine sort direction.
-    var asc = !th.classList.contains('sort-asc');
-    allThs.forEach(function(h) { h.classList.remove('sort-asc','sort-desc'); });
-    th.classList.add(asc ? 'sort-asc' : 'sort-desc');
-    var ind = th.querySelector('.sort-indicator');
-    if (ind) ind.textContent = asc ? '↑' : '↓';
-    allThs.forEach(function(h) {
-      if (h !== th) { var i = h.querySelector('.sort-indicator'); if (i) i.textContent = '↕'; }
-    });
-
-    // Collect [dataRow, expandRow|null] pairs.
-    var pairs = [];
-    var rows = Array.from(tbody.children);
-    var i = 0;
-    while (i < rows.length) {
-      var row = rows[i];
-      if (row.classList.contains('expand-row')) { i++; continue; }
-      var next = rows[i + 1];
-      var expandRow = (next && next.classList.contains('expand-row')) ? next : null;
-      pairs.push([row, expandRow]);
-      i += expandRow ? 2 : 1;
-    }
-
-    // Sort pairs by cell content.
-    pairs.sort(function(a, b) {
-      var av, bv;
-      if (mode === 'status') {
-        av = a[0].dataset.status || '';
-        bv = b[0].dataset.status || '';
-      } else {
-        var ac = a[0].cells[colIdx], bc = b[0].cells[colIdx];
-        av = ac ? ac.textContent.trim() : '';
-        bv = bc ? bc.textContent.trim() : '';
-      }
-      if (mode === 'num') {
-        av = parseFloat(av) || 0;
-        bv = parseFloat(bv) || 0;
-        return asc ? av - bv : bv - av;
-      }
-      return asc ? av.localeCompare(bv) : bv.localeCompare(av);
-    });
-
-    // Collapse all expand rows before reinserting.
-    document.querySelectorAll('.expand-row').forEach(function(r) { r.style.display = 'none'; });
-    document.querySelectorAll('.expandable-row').forEach(function(r) { r.classList.remove('row-expanded'); });
-
-    // Reinsert pairs in sorted order.
-    pairs.forEach(function(pair) {
-      tbody.appendChild(pair[0]);
-      if (pair[1]) tbody.appendChild(pair[1]);
-    });
-  }
-
-  function showBatchError(msg) {
-    document.getElementById('batch-result').innerHTML =
-      '<div class="result-box error mt-md"><span class="status-badge error-tag">Error</span><p>' +
-      msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p></div>';
-  }
-  </script>
 </body>
 </html>

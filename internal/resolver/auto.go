@@ -70,25 +70,25 @@ func NewAutoResolver() Resolver {
 func (r *AutoResolver) SystemID() string { return "auto" }
 func (r *AutoResolver) Name() string     { return "Chemical Identifier" }
 
-func (r *AutoResolver) resolve(ctx context.Context, input string, fetchSVG bool, withSynonyms bool) (CompoundResult, error) {
+func (r *AutoResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
 	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
-		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
+		return r.name.resolve(ctx, input, withSynonyms)
 	}
 	if looksLikeSMILES(input) {
-		return r.smiles.resolve(ctx, input, fetchSVG, withSynonyms)
+		return r.smiles.resolve(ctx, input, withSynonyms)
 	}
 	if hasNonSmilesChar(input) {
-		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
+		return r.name.resolve(ctx, input, withSynonyms)
 	}
-	result, err := r.smiles.resolve(ctx, input, fetchSVG, withSynonyms)
+	result, err := r.smiles.resolve(ctx, input, withSynonyms)
 	if err == errBadInput {
-		return r.name.resolve(ctx, input, fetchSVG, withSynonyms)
+		return r.name.resolve(ctx, input, withSynonyms)
 	}
 	return result, err
 }
 
 func (r *AutoResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
-	return r.resolve(ctx, input, true, true)
+	return r.resolve(ctx, input, true)
 }
 
 func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]CompoundResult, error) {
@@ -103,7 +103,7 @@ func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, o
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false, false)
+			res, err := r.resolve(ctx, in, false)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}

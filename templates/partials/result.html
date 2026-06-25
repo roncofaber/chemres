@@ -12,7 +12,7 @@
       <td>IUPAC</td>
       <td>
         <span class="field-value">{{.IUPAC}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy IUPAC">
+        <button class="copy-btn" aria-label="Copy IUPAC">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -21,7 +21,7 @@
       <td>Formula</td>
       <td>
         <span class="field-value code-value">{{formatFormula .Formula}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy formula">
+        <button class="copy-btn" aria-label="Copy formula">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -30,7 +30,7 @@
       <td>MW</td>
       <td>
         <span class="field-value">{{.MW}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy MW">
+        <button class="copy-btn" aria-label="Copy MW">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -40,7 +40,7 @@
       <td>CAS</td>
       <td>
         <a class="field-value code-value" href="https://commonchemistry.cas.org/detail?cas_rn={{.CAS}}" target="_blank" rel="noopener">{{.CAS}}</a>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy CAS">
+        <button class="copy-btn" aria-label="Copy CAS">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -50,7 +50,7 @@
       <td>InChIKey</td>
       <td>
         <span class="field-value code-value">{{.InChIKey}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy InChIKey">
+        <button class="copy-btn" aria-label="Copy InChIKey">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -59,7 +59,7 @@
       <td>SMILES</td>
       <td>
         <span class="field-value code-value">{{.Canonical}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy SMILES">
+        <button class="copy-btn" aria-label="Copy SMILES">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -69,7 +69,7 @@
       <td>Isomeric</td>
       <td>
         <span class="field-value code-value">{{.Isomeric}}</span>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy isomeric SMILES">
+        <button class="copy-btn" aria-label="Copy isomeric SMILES">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -79,7 +79,7 @@
       <td>CID</td>
       <td>
         <a class="field-value code-value" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a>
-        <button class="copy-btn" onclick="copyText(this, this.previousElementSibling.textContent)" aria-label="Copy CID">
+        <button class="copy-btn" aria-label="Copy CID">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -101,14 +101,4 @@
   </details>
   {{end}}
 </div>
-
-<script>
-htmx.process(document.currentScript.parentElement);
-function copyText(btn, text) {
-  navigator.clipboard.writeText(text.trim()).then(function() {
-    btn.classList.add('copy-btn--done');
-    setTimeout(function() { btn.classList.remove('copy-btn--done'); }, 1500);
-  });
-}
-</script>
 {{end}}

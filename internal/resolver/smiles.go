@@ -20,10 +20,10 @@ func (r *SmilesResolver) SystemID() string { return "smiles" }
 func (r *SmilesResolver) Name() string     { return "SMILES" }
 
 func (r *SmilesResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
-	return r.resolve(ctx, input, true, true)
+	return r.resolve(ctx, input, true)
 }
 
-func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG bool, withSynonyms bool) (CompoundResult, error) {
+func (r *SmilesResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
 	props, err := r.client.fetchProperties(ctx, "smiles", input, true)
@@ -33,7 +33,7 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG boo
 	}
 	if err == errBadInput {
 		result.Error = "Invalid SMILES — not recognized by PubChem"
-		return result, errBadInput // propagate so AutoResolver can fallback
+		return result, errBadInput
 	}
 	if err != nil {
 		return result, err
@@ -72,11 +72,6 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, fetchSVG boo
 			}
 		}
 	}
-	if fetchSVG {
-		if svg, _ := r.client.fetchSVG(ctx, p.CID); svg != "" {
-			result.SVG = svg
-		}
-	}
 	return result, nil
 }
 
@@ -93,7 +88,7 @@ func (r *SmilesResolver) Batch(ctx context.Context, inputs []string) ([]Compound
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false, true)
+			res, err := r.resolve(ctx, in, true)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}

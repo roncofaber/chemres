@@ -23,9 +23,6 @@ func newSmilesTestServer(t *testing.T) *httptest.Server {
 					CanonicalSMILES: "CC(C)=O", IsomericSMILES: "CC(C)=O",
 				}}},
 			})
-		case strings.Contains(r.URL.Path, fmt.Sprintf("/compound/cid/%d/record/SVG", 180)):
-			w.Header().Set("Content-Type", "image/svg+xml")
-			fmt.Fprint(w, `<svg xmlns="http://www.w3.org/2000/svg"><text>mock</text></svg>`)
 		case strings.Contains(r.URL.Path, fmt.Sprintf("/compound/cid/%d/synonyms/JSON", 180)):
 			json.NewEncoder(w).Encode(synonymResponse{
 				InformationList: synonymInfo{
@@ -55,9 +52,6 @@ func TestSmilesResolver_Resolve(t *testing.T) {
 	}
 	if got.CID != 180 {
 		t.Errorf("CID: got %d, want 180", got.CID)
-	}
-	if got.SVG == "" {
-		t.Error("expected non-empty SVG")
 	}
 	if len(got.Synonyms) == 0 {
 		t.Error("expected non-empty Synonyms")
@@ -95,9 +89,6 @@ func TestSmilesResolver_Batch(t *testing.T) {
 	for _, res := range results {
 		if res.IUPAC != "propan-2-one" {
 			t.Errorf("IUPAC: got %q, want %q", res.IUPAC, "propan-2-one")
-		}
-		if res.SVG != "" {
-			t.Error("batch results should not include SVG")
 		}
 	}
 }

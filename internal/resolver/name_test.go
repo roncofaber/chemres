@@ -56,9 +56,6 @@ func TestNameResolver_Resolve(t *testing.T) {
 	if got.CAS != "67-64-1" {
 		t.Errorf("CAS: got %q, want %q", got.CAS, "67-64-1")
 	}
-	if got.SVG == "" {
-		t.Error("expected non-empty SVG")
-	}
 }
 
 func TestNameResolver_NotFound(t *testing.T) {
@@ -92,9 +89,6 @@ func TestNameResolver_Batch(t *testing.T) {
 	for _, res := range results {
 		if res.Canonical != "CC(C)=O" {
 			t.Errorf("SMILES: got %q, want %q", res.Canonical, "CC(C)=O")
-		}
-		if res.SVG != "" {
-			t.Error("batch results should not include SVG")
 		}
 	}
 }

@@ -2,25 +2,23 @@ package resolver
 
 import (
 	"context"
-	"html/template"
 	"time"
 )
 
 type CompoundResult struct {
-	Input      string
-	CID        int
-	IUPAC      string
-	Canonical  string
-	Isomeric   string
-	Formula    string
-	MW         string
-	InChIKey   string
-	CAS        string
-	CommonName string
-	Synonyms   []string
-	SVG        template.HTML
-	ResolvedAt time.Time
-	Error      string
+	Input      string    `json:"input"`
+	CID        int       `json:"cid"`
+	IUPAC      string    `json:"iupac"`
+	Canonical  string    `json:"canonical_smiles"`
+	Isomeric   string    `json:"isomeric_smiles"`
+	Formula    string    `json:"formula"`
+	MW         string    `json:"mw"`
+	InChIKey   string    `json:"inchikey"`
+	CAS        string    `json:"cas"`
+	CommonName string    `json:"common_name"`
+	Synonyms   []string  `json:"synonyms"`
+	ResolvedAt time.Time `json:"resolved_at"`
+	Error      string    `json:"error,omitempty"`
 }
 
 type Resolver interface {

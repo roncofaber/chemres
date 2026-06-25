@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 type NameResolver struct {
 	client *pubchemClient
 }
@@ -20,10 +19,10 @@ func (r *NameResolver) SystemID() string { return "name" }
 func (r *NameResolver) Name() string     { return "Name / CAS" }
 
 func (r *NameResolver) Resolve(ctx context.Context, input string) (CompoundResult, error) {
-	return r.resolve(ctx, input, true, true)
+	return r.resolve(ctx, input, true)
 }
 
-func (r *NameResolver) resolve(ctx context.Context, input string, fetchSVG bool, withSynonyms bool) (CompoundResult, error) {
+func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
 	namespace := "name"
@@ -63,10 +62,10 @@ func (r *NameResolver) resolve(ctx context.Context, input string, fetchSVG bool,
 	if result.Isomeric == "" {
 		result.Isomeric = p.ConnectivitySMILES
 	}
-	result.Formula     = p.MolecularFormula
-	result.MW          = p.MolecularWeight
-	result.InChIKey    = p.InChIKey
-	result.CommonName  = p.Title
+	result.Formula    = p.MolecularFormula
+	result.MW         = p.MolecularWeight
+	result.InChIKey   = p.InChIKey
+	result.CommonName = p.Title
 
 	if withSynonyms {
 		if cas, syns, _ := r.client.fetchSynonyms(ctx, p.CID); cas != "" || len(syns) > 0 {
@@ -75,11 +74,6 @@ func (r *NameResolver) resolve(ctx context.Context, input string, fetchSVG bool,
 			if result.CommonName == "" {
 				result.CommonName = firstCommonName(syns)
 			}
-		}
-	}
-	if fetchSVG {
-		if svg, _ := r.client.fetchSVG(ctx, p.CID); svg != "" {
-			result.SVG = svg
 		}
 	}
 	return result, nil
@@ -103,7 +97,7 @@ func (r *NameResolver) Batch(ctx context.Context, inputs []string) ([]CompoundRe
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false, true)
+			res, err := r.resolve(ctx, in, true)
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}

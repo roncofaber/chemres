@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -212,26 +210,6 @@ func (c *pubchemClient) fetchProperties(ctx context.Context, namespace, identifi
 	return result, nil
 }
 
-func (c *pubchemClient) fetchSVG(ctx context.Context, cid int) (template.HTML, error) {
-	u := fmt.Sprintf("%s/compound/cid/%d/record/SVG?record_type=2d", c.baseURL, cid)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
-		return "", err
-	}
-	resp, err := c.do(ctx, req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("svg fetch returned %d", resp.StatusCode)
-	}
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return template.HTML(b), nil
-}
 
 func (c *pubchemClient) fetchSynonyms(ctx context.Context, cid int) (cas string, synonyms []string, err error) {
 	u := fmt.Sprintf("%s/compound/cid/%d/synonyms/JSON", c.baseURL, cid)

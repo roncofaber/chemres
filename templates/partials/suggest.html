@@ -2,12 +2,7 @@
 {{if .}}
 <ul class="suggest-list" role="listbox">
   {{range $i, $s := .}}
-  <li class="suggest-item" role="option" id="suggest-opt-{{$i}}" aria-selected="false"
-      onmousedown="event.preventDefault();
-                   document.getElementById('lookup-input').value='{{$s}}';
-                   document.getElementById('lookup-suggestions').innerHTML='';
-                   document.getElementById('lookup-input').setAttribute('aria-expanded','false');
-                   document.getElementById('lookup-form').requestSubmit();">
+  <li class="suggest-item" role="option" id="suggest-opt-{{$i}}" aria-selected="false" data-value="{{$s}}">
     <span class="suggest-name">{{$s}}</span>
   </li>
   {{end}}
