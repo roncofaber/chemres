@@ -15,6 +15,34 @@ Accepts **SMILES**, **names**, **CAS numbers**, and **InChIKeys**. Type any of t
 - **CSV export**: export batch results to a file
 - **2D structure rendering**: chemical structures rendered using SmilesDrawer can be downloaded as SVG or copied as PNG
 
+## API
+
+A JSON API is available at `https://chemres.app/api/v1/`. All endpoints support CORS.
+
+### Resolve a single compound
+
+```bash
+curl -X POST https://chemres.app/api/v1/resolve \
+  -H "Content-Type: application/json" \
+  -d '{"input": "acetone"}'
+```
+
+### Batch resolve (up to 500 compounds)
+
+```bash
+curl -X POST https://chemres.app/api/v1/batch \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": ["acetone", "water", "CCO"]}'
+```
+
+### Autocomplete
+
+```bash
+curl "https://chemres.app/api/v1/suggest?q=acet"
+```
+
+Responses use snake_case JSON fields (`input`, `cid`, `iupac`, `formula`, `mw`, `cas`, `inchikey`, `canonical_smiles`, `isomeric_smiles`, `common_name`, `synonyms`, `resolved_at`, `error`). Inputs are limited to 5000 characters each. Requests are rate-limited to 4 req/s per IP via the PubChem API.
+
 ## Deployment
 
 A live version of the app is available at [chemres.app](https://chemres.app). The app can also be run locally as a stateless Go binary. Run it locally with Go, Docker or deploy it on any platform that runs Docker containers.
