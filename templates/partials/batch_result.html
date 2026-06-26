@@ -4,20 +4,22 @@
   <p>{{.Error}}</p>
 </div>
 {{else}}
-<div class="mt-md">
-  <div class="summary-bar">
-    <span class="summary-pill valid">{{.Summary.Found}} found</span>
-    <span class="summary-pill warn">{{.Summary.NotFound}} not found</span>
-    {{if .Summary.Errors}}<span class="summary-pill invalid">{{.Summary.Errors}} errors</span>{{end}}
-    <span class="summary-pill neutral">{{.Summary.Total}} total</span>
-    <form method="post" action="/export" class="ml-auto">
-      <input type="hidden" name="results" value="{{.ResultsJSON}}">
-      <input type="hidden" name="system" value="{{.SystemID}}">
-      <button class="btn btn-sm" type="submit">↓ Export CSV</button>
-    </form>
-  </div>
-  <div class="batch-filter-wrap">
-    <input type="text" class="batch-filter" placeholder="Filter results…" autocomplete="off" spellcheck="false">
+<div class="mt-md batch-results">
+  <div class="batch-meta">
+    <div class="batch-pills">
+      <span class="summary-pill valid">{{.Summary.Found}} found</span>
+      <span class="summary-pill warn">{{.Summary.NotFound}} not found</span>
+      {{if .Summary.Errors}}<span class="summary-pill invalid">{{.Summary.Errors}} errors</span>{{end}}
+      <span class="summary-pill neutral">{{.Summary.Total}} total</span>
+    </div>
+    <div class="batch-toolbar">
+      <input type="text" class="batch-filter" placeholder="Filter…" autocomplete="off" spellcheck="false">
+      <form method="post" action="/export">
+        <input type="hidden" name="results" value="{{.ResultsJSON}}">
+        <input type="hidden" name="system" value="{{.SystemID}}">
+        <button class="btn btn-sm btn-secondary batch-export" type="submit">↓ Export CSV</button>
+      </form>
+    </div>
   </div>
   <div class="batch-table-wrap">
     <table class="batch-table">

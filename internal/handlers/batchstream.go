@@ -23,6 +23,10 @@ func NewBatchStreamHandler(tmpl *template.Template, r resolver.Resolver, store *
 }
 
 func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	id := r.URL.Query().Get("job")
 	job, ok := h.store.Get(id)
 	if !ok {

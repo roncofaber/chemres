@@ -1,0 +1,23 @@
+# Compiled binary
+chemres
+chem-resolver
+
+# Test binaries
+*.test
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Superpowers scratch (not source)
+.superpowers/
