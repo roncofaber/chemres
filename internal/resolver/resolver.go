@@ -14,11 +14,22 @@ type CompoundResult struct {
 	Formula    string    `json:"formula"`
 	MW         string    `json:"mw"`
 	InChIKey   string    `json:"inchikey"`
+	InChI      string    `json:"inchi,omitempty"`
 	CAS        string    `json:"cas"`
 	CommonName string    `json:"common_name"`
 	Synonyms   []string  `json:"synonyms"`
 	ResolvedAt time.Time `json:"resolved_at"`
 	Error      string    `json:"error,omitempty"`
+	// Computed physicochemical properties
+	XLogP              *float64 `json:"xlogp,omitempty"`
+	ExactMass          string   `json:"exact_mass,omitempty"`
+	TPSA               *float64 `json:"tpsa,omitempty"`
+	HBondDonorCount    *int     `json:"hbond_donor_count,omitempty"`
+	HBondAcceptorCount *int     `json:"hbond_acceptor_count,omitempty"`
+	RotatableBondCount *int     `json:"rotatable_bond_count,omitempty"`
+	AtomStereoCount    *int     `json:"atom_stereo_count,omitempty"`
+	Charge             *int     `json:"charge,omitempty"`
+	Volume3D           *float64 `json:"volume_3d,omitempty"`
 }
 
 type Resolver interface {

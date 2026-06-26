@@ -74,6 +74,9 @@ func (r *AutoResolver) resolve(ctx context.Context, input string, withSynonyms b
 	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
 		return r.name.resolve(ctx, input, withSynonyms)
 	}
+	if strings.HasPrefix(input, "InChI=") {
+		return r.name.resolve(ctx, input, withSynonyms)
+	}
 	if looksLikeSMILES(input) {
 		return r.smiles.resolve(ctx, input, withSynonyms)
 	}

@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"html/template"
 	"path/filepath"
 	"regexp"
+	"strconv"
 )
 
 var digitRE = regexp.MustCompile(`\d+`)
@@ -26,9 +28,29 @@ func compoundTitle(name, formula string) template.HTML {
 	return template.HTML(escaped)
 }
 
+// propFloat formats an optional float64 pointer with the given precision.
+// Returns "" if nil, so {{with propFloat .XLogP 2}} skips the block when absent.
+func propFloat(p *float64, prec int) string {
+	if p == nil {
+		return ""
+	}
+	return strconv.FormatFloat(*p, 'f', prec, 64)
+}
+
+// propInt formats an optional int pointer.
+// Returns "" if nil; "0" is returned for a present-but-zero value.
+func propInt(p *int) string {
+	if p == nil {
+		return ""
+	}
+	return fmt.Sprintf("%d", *p)
+}
+
 var funcMap = template.FuncMap{
-	"formatFormula":  formatFormula,
-	"compoundTitle":  compoundTitle,
+	"formatFormula": formatFormula,
+	"compoundTitle": compoundTitle,
+	"propFloat":     propFloat,
+	"propInt":       propInt,
 }
 
 func MustLoadTemplates(dir string) *template.Template {

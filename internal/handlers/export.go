@@ -49,7 +49,7 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 
 	cw := csv.NewWriter(w)
-	cw.Write([]string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "CAS", "InChIKey", "CanonicalSMILES", "IsomericSMILES", "ResolvedAt", "Error"})
+	cw.Write([]string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "ExactMass", "CAS", "InChIKey", "InChI", "CanonicalSMILES", "IsomericSMILES", "XLogP", "TPSA", "HBondDonors", "HBondAcceptors", "RotatableBonds", "AtomStereoCount", "Charge", "Volume3D", "ResolvedAt", "Error"})
 	for _, res := range results {
 		cid := ""
 		pubchemURL := ""
@@ -63,7 +63,12 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		cw.Write([]string{
 			res.Input, cid, pubchemURL, res.IUPAC, res.CommonName, res.Formula, res.MW,
-			res.CAS, res.InChIKey, res.Canonical, res.Isomeric, resolvedAt, res.Error,
+			res.ExactMass, res.CAS, res.InChIKey, res.InChI, res.Canonical, res.Isomeric,
+			propFloat(res.XLogP, 2), propFloat(res.TPSA, 1),
+			propInt(res.HBondDonorCount), propInt(res.HBondAcceptorCount),
+			propInt(res.RotatableBondCount), propInt(res.AtomStereoCount),
+			propInt(res.Charge), propFloat(res.Volume3D, 1),
+			resolvedAt, res.Error,
 		})
 	}
 	cw.Flush()

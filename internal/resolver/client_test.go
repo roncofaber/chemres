@@ -19,7 +19,7 @@ func newTestClient(srv *httptest.Server) *pubchemClient {
 
 func TestFetchProperties_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		want := "/compound/smiles/property/IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES,Title/JSON"
+		want := "/compound/smiles/property/IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES,Title,InChI,XLogP,ExactMass,TPSA,HBondDonorCount,HBondAcceptorCount,RotatableBondCount,AtomStereoCount,Charge,Volume3D/JSON"
 		if r.URL.Path != want {
 			http.Error(w, "unexpected path: "+r.URL.Path, 404)
 			return
@@ -38,7 +38,7 @@ func TestFetchProperties_Success(t *testing.T) {
 	defer srv.Close()
 
 	c := newTestClient(srv)
-	got, err := c.fetchProperties(context.Background(), "smiles", "CC(C)=O", true)
+	got, err := c.fetchProperties(context.Background(), "smiles", "CC(C)=O", "smiles")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestFetchProperties_NotFound(t *testing.T) {
 	defer srv.Close()
 
 	c := newTestClient(srv)
-	_, err := c.fetchProperties(context.Background(), "smiles", "INVALID", true)
+	_, err := c.fetchProperties(context.Background(), "smiles", "INVALID", "smiles")
 	if err != errNotFound {
 		t.Errorf("got %v, want errNotFound", err)
 	}
@@ -107,7 +107,7 @@ func TestFetchProperties_ForwardsClientIP(t *testing.T) {
 
 	c := newTestClient(srv)
 	ctx := WithClientIP(context.Background(), "10.0.0.1")
-	_, err := c.fetchProperties(ctx, "name", "water", false)
+	_, err := c.fetchProperties(ctx, "name", "water", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestFetchProperties_RetriesOn503(t *testing.T) {
 	defer srv.Close()
 
 	c := newTestClient(srv)
-	_, err := c.fetchProperties(context.Background(), "name", "water", false)
+	_, err := c.fetchProperties(context.Background(), "name", "water", "")
 	if err != nil {
 		t.Fatalf("expected success after retries, got: %v", err)
 	}
@@ -151,7 +151,7 @@ func TestFetchProperties_NoRetryOn404(t *testing.T) {
 	defer srv.Close()
 
 	c := newTestClient(srv)
-	_, err := c.fetchProperties(context.Background(), "name", "INVALID", false)
+	_, err := c.fetchProperties(context.Background(), "name", "INVALID", "")
 	if err != errNotFound {
 		t.Errorf("got %v, want errNotFound", err)
 	}

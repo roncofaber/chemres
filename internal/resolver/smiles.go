@@ -26,7 +26,7 @@ func (r *SmilesResolver) Resolve(ctx context.Context, input string) (CompoundRes
 func (r *SmilesResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
-	props, err := r.client.fetchProperties(ctx, "smiles", input, true)
+	props, err := r.client.fetchProperties(ctx, "smiles", input, "smiles")
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
 		return result, nil
@@ -58,10 +58,20 @@ func (r *SmilesResolver) resolve(ctx context.Context, input string, withSynonyms
 	if result.Isomeric == "" {
 		result.Isomeric = p.ConnectivitySMILES
 	}
-	result.Formula    = p.MolecularFormula
-	result.MW         = p.MolecularWeight
-	result.InChIKey   = p.InChIKey
-	result.CommonName = p.Title
+	result.Formula             = p.MolecularFormula
+	result.MW                  = p.MolecularWeight
+	result.InChIKey             = p.InChIKey
+	result.InChI               = p.InChI
+	result.CommonName          = p.Title
+	result.XLogP               = p.XLogP
+	result.ExactMass           = p.ExactMass
+	result.TPSA                = p.TPSA
+	result.HBondDonorCount     = p.HBondDonorCount
+	result.HBondAcceptorCount  = p.HBondAcceptorCount
+	result.RotatableBondCount  = p.RotatableBondCount
+	result.AtomStereoCount     = p.AtomStereoCount
+	result.Charge              = p.Charge
+	result.Volume3D            = p.Volume3D
 
 	if withSynonyms {
 		if cas, syns, err := r.client.fetchSynonyms(ctx, p.CID); err != nil {

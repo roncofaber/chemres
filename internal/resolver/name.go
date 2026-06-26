@@ -26,11 +26,15 @@ func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms b
 	result := CompoundResult{Input: input, ResolvedAt: time.Now().UTC()}
 
 	namespace := "name"
+	postKey   := ""
 	if inchiKeyRE.MatchString(input) {
 		namespace = "inchikey"
+	} else if strings.HasPrefix(input, "InChI=") {
+		namespace = "inchi"
+		postKey   = "inchi"
 	}
 
-	props, err := r.client.fetchProperties(ctx, namespace, input, false)
+	props, err := r.client.fetchProperties(ctx, namespace, input, postKey)
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
 		return result, nil
@@ -62,10 +66,20 @@ func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms b
 	if result.Isomeric == "" {
 		result.Isomeric = p.ConnectivitySMILES
 	}
-	result.Formula    = p.MolecularFormula
-	result.MW         = p.MolecularWeight
-	result.InChIKey   = p.InChIKey
-	result.CommonName = p.Title
+	result.Formula             = p.MolecularFormula
+	result.MW                  = p.MolecularWeight
+	result.InChIKey             = p.InChIKey
+	result.InChI               = p.InChI
+	result.CommonName          = p.Title
+	result.XLogP               = p.XLogP
+	result.ExactMass           = p.ExactMass
+	result.TPSA                = p.TPSA
+	result.HBondDonorCount     = p.HBondDonorCount
+	result.HBondAcceptorCount  = p.HBondAcceptorCount
+	result.RotatableBondCount  = p.RotatableBondCount
+	result.AtomStereoCount     = p.AtomStereoCount
+	result.Charge              = p.Charge
+	result.Volume3D            = p.Volume3D
 
 	if withSynonyms {
 		if cas, syns, err := r.client.fetchSynonyms(ctx, p.CID); err != nil {

@@ -75,6 +75,17 @@
       </td>
     </tr>
     {{end}}
+    {{if .InChI}}
+    <tr class="copyable-row">
+      <td>InChI</td>
+      <td>
+        <span class="field-value code-value">{{.InChI}}</span>
+        <button class="copy-btn" aria-label="Copy InChI">
+          {{template "icon/copy" .}}{{template "icon/check" .}}
+        </button>
+      </td>
+    </tr>
+    {{end}}
     <tr class="copyable-row">
       <td>CID</td>
       <td>
@@ -92,6 +103,22 @@
   </div>
   {{end}}
   </div>{{/* end result-body */}}
+  {{if or .XLogP .TPSA .HBondDonorCount .HBondAcceptorCount .RotatableBondCount .ExactMass .AtomStereoCount .Charge .Volume3D}}
+  <details>
+    <summary>Computed properties</summary>
+    <div class="comp-props-wrap">
+      {{with propFloat .XLogP 2}}<div class="comp-prop"><span class="comp-label">XLogP</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propFloat .TPSA 1}}<div class="comp-prop"><span class="comp-label">TPSA</span><span class="comp-value">{{.}} Å²</span></div>{{end}}
+      {{if .ExactMass}}<div class="comp-prop"><span class="comp-label">Exact mass</span><span class="comp-value">{{.ExactMass}}</span></div>{{end}}
+      {{with propInt .HBondDonorCount}}<div class="comp-prop"><span class="comp-label">HB donors</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .HBondAcceptorCount}}<div class="comp-prop"><span class="comp-label">HB acceptors</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .RotatableBondCount}}<div class="comp-prop"><span class="comp-label">Rot. bonds</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .AtomStereoCount}}<div class="comp-prop"><span class="comp-label">Stereocenters</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .Charge}}<div class="comp-prop"><span class="comp-label">Charge</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propFloat .Volume3D 1}}<div class="comp-prop"><span class="comp-label">Volume 3D</span><span class="comp-value">{{.}} Å³</span></div>{{end}}
+    </div>
+  </details>
+  {{end}}
   {{if .Synonyms}}
   <details>
     <summary>Synonyms ({{len .Synonyms}})</summary>

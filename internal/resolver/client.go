@@ -20,7 +20,8 @@ import (
 
 const pubchemBase = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 const pubchemAutocomplete = "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete"
-const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES,Title"
+const propertyFields = "IUPACName,MolecularFormula,MolecularWeight,InChIKey,CanonicalSMILES,IsomericSMILES,SMILES,ConnectivitySMILES,Title," +
+	"InChI,XLogP,ExactMass,TPSA,HBondDonorCount,HBondAcceptorCount,RotatableBondCount,AtomStereoCount,Charge,Volume3D"
 
 const (
 	rateLimitPerSec = 4
@@ -134,16 +135,26 @@ func (c *pubchemClient) do(ctx context.Context, req *http.Request) (*http.Respon
 }
 
 type propertyRow struct {
-	CID                int    `json:"CID"`
-	IUPACName          string `json:"IUPACName"`
-	MolecularFormula   string `json:"MolecularFormula"`
-	MolecularWeight    string `json:"MolecularWeight"`
-	InChIKey           string `json:"InChIKey"`
-	CanonicalSMILES    string `json:"CanonicalSMILES"`
-	IsomericSMILES     string `json:"IsomericSMILES"`
-	SMILES             string `json:"SMILES"`
-	ConnectivitySMILES string `json:"ConnectivitySMILES"`
-	Title              string `json:"Title"`
+	CID                int      `json:"CID"`
+	IUPACName          string   `json:"IUPACName"`
+	MolecularFormula   string   `json:"MolecularFormula"`
+	MolecularWeight    string   `json:"MolecularWeight"`
+	InChIKey           string   `json:"InChIKey"`
+	CanonicalSMILES    string   `json:"CanonicalSMILES"`
+	IsomericSMILES     string   `json:"IsomericSMILES"`
+	SMILES             string   `json:"SMILES"`
+	ConnectivitySMILES string   `json:"ConnectivitySMILES"`
+	Title              string   `json:"Title"`
+	InChI              string   `json:"InChI"`
+	XLogP              *float64 `json:"XLogP"`
+	ExactMass          string   `json:"ExactMass"`
+	TPSA               *float64 `json:"TPSA"`
+	HBondDonorCount    *int     `json:"HBondDonorCount"`
+	HBondAcceptorCount *int     `json:"HBondAcceptorCount"`
+	RotatableBondCount *int     `json:"RotatableBondCount"`
+	AtomStereoCount    *int     `json:"AtomStereoCount"`
+	Charge             *int     `json:"Charge"`
+	Volume3D           *float64 `json:"Volume3D"`
 }
 
 type propertyTable struct {
@@ -167,13 +178,16 @@ type synonymResponse struct {
 	InformationList synonymInfo `json:"InformationList"`
 }
 
-func (c *pubchemClient) fetchProperties(ctx context.Context, namespace, identifier string, namespaceIsSmiles bool) (propertyResponse, error) {
+// fetchProperties fetches compound properties. When postKey is non-empty, the
+// identifier is sent as a POST body (required for SMILES and InChI); otherwise
+// the identifier is embedded in the URL path as a GET request.
+func (c *pubchemClient) fetchProperties(ctx context.Context, namespace, identifier, postKey string) (propertyResponse, error) {
 	path := fmt.Sprintf("%s/compound/%s/property/%s/JSON", c.baseURL, namespace, propertyFields)
 
 	var req *http.Request
 	var err error
-	if namespaceIsSmiles {
-		body := strings.NewReader(url.Values{"smiles": {identifier}}.Encode())
+	if postKey != "" {
+		body := strings.NewReader(url.Values{postKey: {identifier}}.Encode())
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, path, body)
 		if err != nil {
 			return propertyResponse{}, err
