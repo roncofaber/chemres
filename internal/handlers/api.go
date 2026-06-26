@@ -2,11 +2,129 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/roncofaber/chemres/internal/resolver"
 )
+
+var unsafeCharsRE = regexp.MustCompile(`[^\w-]+`)
+
+func sanitizeFilename(name string) string {
+	return strings.Trim(unsafeCharsRE.ReplaceAllString(name, "_"), "_")
+}
+
+const pubchemBase3D = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/%s/SDF?record_type=3d"
+
+// GET /api/v1/conformer?cid=XXX&format=sdf|xyz&name=YYY
+func (h *APIHandler) Conformer(w http.ResponseWriter, r *http.Request) {
+	corsHeaders(w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodGet {
+		apiError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	cid := strings.TrimSpace(r.URL.Query().Get("cid"))
+	if cid == "" {
+		apiError(w, http.StatusBadRequest, "cid is required")
+		return
+	}
+	if _, err := strconv.Atoi(cid); err != nil {
+		apiError(w, http.StatusBadRequest, "cid must be a number")
+		return
+	}
+	format := r.URL.Query().Get("format")
+	if format != "sdf" && format != "xyz" {
+		format = "sdf"
+	}
+	name := strings.TrimSpace(r.URL.Query().Get("name"))
+	if name == "" {
+		name = "compound_CID" + cid
+	}
+	safe := sanitizeFilename(name)
+	if len(safe) > 60 {
+		safe = safe[:60]
+	}
+
+	resp, err := http.Get(fmt.Sprintf(pubchemBase3D, cid))
+	if err != nil {
+		apiError(w, http.StatusServiceUnavailable, "could not reach PubChem")
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		apiError(w, http.StatusNotFound, "no 3D conformer available for this compound")
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		apiError(w, http.StatusServiceUnavailable, fmt.Sprintf("PubChem returned %d", resp.StatusCode))
+		return
+	}
+	sdf, err := io.ReadAll(resp.Body)
+	if err != nil {
+		apiError(w, http.StatusInternalServerError, "failed to read SDF")
+		return
+	}
+
+	if format == "xyz" {
+		xyz, xyzErr := sdfToXyz(string(sdf), name)
+		if xyzErr != nil {
+			apiError(w, http.StatusInternalServerError, "could not convert SDF to XYZ: "+xyzErr.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "chemical/x-xyz")
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.xyz"`, safe))
+		w.Write([]byte(xyz))
+		return
+	}
+
+	w.Header().Set("Content-Type", "chemical/x-mdl-sdfile")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.sdf"`, safe))
+	w.Write(sdf)
+}
+
+func sdfToXyz(sdf, name string) (string, error) {
+	lines := strings.Split(sdf, "\n")
+	if len(lines) < 5 {
+		return "", fmt.Errorf("SDF too short")
+	}
+	countsLine := lines[3]
+	if len(countsLine) < 3 {
+		return "", fmt.Errorf("invalid counts line")
+	}
+	atomCount, err := strconv.Atoi(strings.TrimSpace(countsLine[:3]))
+	if err != nil || atomCount <= 0 {
+		return "", fmt.Errorf("invalid atom count")
+	}
+	var atoms []string
+	for i := 0; i < atomCount; i++ {
+		line := lines[4+i]
+		if len(line) < 34 {
+			break
+		}
+		x, _ := strconv.ParseFloat(strings.TrimSpace(line[0:10]), 64)
+		y, _ := strconv.ParseFloat(strings.TrimSpace(line[10:20]), 64)
+		z, _ := strconv.ParseFloat(strings.TrimSpace(line[20:30]), 64)
+		elem := strings.TrimSpace(line[31:34])
+		atoms = append(atoms, fmt.Sprintf("%s  %.4f  %.4f  %.4f", elem, x, y, z))
+	}
+	if len(atoms) == 0 {
+		return "", fmt.Errorf("no atoms parsed")
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "%d\n%s\n", len(atoms), name)
+	for _, a := range atoms {
+		fmt.Fprintln(&b, a)
+	}
+	return b.String(), nil
+}
 
 const maxAPIBatchInputs  = 500
 const maxAPIInputLength  = 5000

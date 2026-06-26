@@ -298,22 +298,13 @@ body {
 }
 
 .card-title-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.3em;
-  height: 1.3em;
-  margin-left: 0.6em;
-  border: 1px solid currentColor;
-  border-radius: 50%;
+  margin-left: 0.5em;
   font-family: var(--font-sans);
-  font-size: 0.7em;
-  font-weight: 500;
+  font-size: 0.85em;
   letter-spacing: 0;
   text-transform: none;
   color: var(--text-faint);
   cursor: default;
-  position: static;
   vertical-align: middle;
 }
 
@@ -854,9 +845,17 @@ input[type="file"]::file-selector-button:hover {
   opacity: 1;
 }
 
-.copy-btn svg { width: 12px; height: 12px; display: block; }
-.copy-btn .icon-copy  { display: block; }
-.copy-btn .icon-check { display: none; }
+.copy-btn svg,
+.str-copy-btn svg,
+#modal-copy-btn svg { width: 12px; height: 12px; display: block; }
+
+.copy-btn .icon-copy,
+.str-copy-btn .icon-copy,
+#modal-copy-btn .icon-copy  { display: block; }
+
+.copy-btn .icon-check,
+.str-copy-btn .icon-check,
+#modal-copy-btn .icon-check { display: none; }
 
 .copy-btn--done {
   opacity: 1;
@@ -865,8 +864,13 @@ input[type="file"]::file-selector-button:hover {
   background: var(--found-bg);
 }
 
-.copy-btn--done .icon-copy  { display: none; }
-.copy-btn--done .icon-check { display: block; }
+.copy-btn--done .icon-copy,
+.str-copy-btn.copy-btn--done .icon-copy,
+#modal-copy-btn.copy-btn--done .icon-copy  { display: none; }
+
+.copy-btn--done .icon-check,
+.str-copy-btn.copy-btn--done .icon-check,
+#modal-copy-btn.copy-btn--done .icon-check { display: block; }
 
 /* ── Details toggle ──────────────────────────────────────────── */
 details { margin-top: 1rem; }
@@ -1315,16 +1319,59 @@ input.batch-filter:focus { border-color: var(--accent); }
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.4rem;
 }
 
-.structure-pubchem-link {
-  font-size: var(--fs-body);
+.structure-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.structure-actions .btn-sm {
+  padding: 0.2rem 0.55rem;
+  font-size: var(--fs-micro);
+}
+
+.str-dl-wrap {
+  position: relative;
+}
+
+.dl-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  min-width: 110px;
+  z-index: 200;
+  overflow: hidden;
+}
+
+.dl-opt {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.dl-opt:hover { background: var(--surface2); color: var(--text); }
+
+.pubchem-suffix {
+  font-size: var(--fs-micro);
   color: var(--text-faint);
-  text-decoration: none;
-  margin-top: 0.3rem;
   letter-spacing: 0.04em;
 }
-.structure-pubchem-link:hover { color: var(--accent); }
 
 /* Download button — appears on hover */
 .structure-dl {
@@ -1481,6 +1528,13 @@ textarea:focus {
   color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.comp-label[title] {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
 }
 
 .comp-value {

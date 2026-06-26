@@ -11,7 +11,7 @@ function toggleTheme() {
   });
 
   if (_modalSmiles && document.getElementById('structure-modal').classList.contains('is-open')) {
-    openStructureModal(_modalSmiles, _modalName, _modalFormula);
+    openStructureModal(_modalSmiles, _modalName, _modalFormula, _modalCID);
   }
 }
 
@@ -36,15 +36,9 @@ function copyAsPng(svgEl, btn) {
     ctx.drawImage(img, 0, 0);
     URL.revokeObjectURL(url);
     canvas.toBlob(function(pngBlob) {
-      var icon  = btn.querySelector('.png-icon,.structure-png-icon');
-      var check = btn.querySelector('.png-check,.structure-png-check');
       function flash() {
-        if (icon)  icon.style.display  = 'none';
-        if (check) check.style.display = 'block';
-        setTimeout(function() {
-          if (icon)  icon.style.display  = '';
-          if (check) check.style.display = 'none';
-        }, 1500);
+        btn.classList.add('copy-btn--done');
+        setTimeout(function() { btn.classList.remove('copy-btn--done'); }, 1500);
       }
       navigator.clipboard.write([new ClipboardItem({'image/png': pngBlob})])
         .then(flash).catch(flash);
@@ -78,11 +72,73 @@ function copyText(btn, text) {
   });
 }
 
-/* ── Structure modal ────────────────────────────────────────────── */
-var _modalSmiles = null, _modalName = null, _modalFormula = null;
+/* ── Structure downloads ────────────────────────────────────────── */
+function downloadPng(svgEl, name) {
+  var src = new XMLSerializer().serializeToString(svgEl);
+  if (!src.match(/xmlns=/)) src = src.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  var blob = new Blob([src], {type: 'image/svg+xml;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var img  = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width  = img.naturalWidth  || 420;
+    canvas.height = img.naturalHeight || 360;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(pngBlob) {
+      var dlUrl = URL.createObjectURL(pngBlob);
+      var a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = (name || 'structure').replace(/[^\w-]/g, '_').substring(0, 60) + '.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(dlUrl);
+    }, 'image/png');
+  };
+  img.src = url;
+}
 
-function openStructureModal(smiles, name, formula) {
-  _modalSmiles = smiles; _modalName = name; _modalFormula = formula;
+function sdfToXyz(sdf, name) {
+  var lines = sdf.split('\n');
+  if (lines.length < 4) return null;
+  var atomCount = parseInt(lines[3].substring(0, 3).trim(), 10);
+  if (isNaN(atomCount) || atomCount <= 0) return null;
+  var atoms = [];
+  for (var i = 0; i < atomCount; i++) {
+    var line = lines[4 + i] || '';
+    var x = parseFloat(line.substring(0, 10));
+    var y = parseFloat(line.substring(10, 20));
+    var z = parseFloat(line.substring(20, 30));
+    var elem = line.substring(31, 34).trim();
+    if (!elem || isNaN(x)) break;
+    atoms.push(elem + '  ' + x.toFixed(4) + '  ' + y.toFixed(4) + '  ' + z.toFixed(4));
+  }
+  if (!atoms.length) return null;
+  return atoms.length + '\n' + (name || 'compound') + '\n' + atoms.join('\n');
+}
+
+function downloadFromCid(cid, name, format) {
+  if (!cid) { alert('No CID available for this compound.'); return; }
+  var url = '/api/v1/conformer?cid=' + encodeURIComponent(cid) + '&format=' + format + '&name=' + encodeURIComponent(name || 'compound');
+  var a = document.createElement('a');
+  a.href = url;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+var _openDlMenu = null;
+function toggleDlMenu(menu) {
+  if (_openDlMenu && _openDlMenu !== menu) { _openDlMenu.style.display = 'none'; }
+  if (menu.style.display === 'none') { menu.style.display = 'block'; _openDlMenu = menu; }
+  else { menu.style.display = 'none'; _openDlMenu = null; }
+}
+
+/* ── Structure modal ────────────────────────────────────────────── */
+var _modalSmiles = null, _modalName = null, _modalFormula = null, _modalCID = null;
+
+function openStructureModal(smiles, name, formula, cid) {
+  _modalSmiles = smiles; _modalName = name; _modalFormula = formula; _modalCID = cid || null;
   var modal  = document.getElementById('structure-modal');
   var cont   = document.getElementById('modal-structure');
   var title  = (name || smiles).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -96,9 +152,6 @@ function openStructureModal(smiles, name, formula) {
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
   drawer.draw(largest, null, currentTheme(), function(svgEl) {
     cont.appendChild(svgEl);
-    var pngBtn = document.getElementById('modal-png-btn');
-    document.getElementById('modal-dl-btn').onclick = function() { downloadSvg(svgEl, name); };
-    pngBtn.onclick = function() { copyAsPng(svgEl, pngBtn); };
   }, function() {
     cont.innerHTML = '<p style="color:var(--error-text);padding:1rem;font-family:var(--font-mono);font-size:0.8rem">Could not render structure.</p>';
   });
@@ -107,7 +160,7 @@ function openStructureModal(smiles, name, formula) {
 function closeStructureModal() {
   document.getElementById('structure-modal').classList.remove('is-open');
   document.body.style.overflow = '';
-  _modalSmiles = null; _modalName = null; _modalFormula = null;
+  _modalSmiles = null; _modalName = null; _modalFormula = null; _modalCID = null;
 }
 
 function drawStructure(el) {
@@ -122,25 +175,10 @@ function drawStructure(el) {
   drawer.draw(largest, null, currentTheme(), function(svgEl) {
     el.innerHTML = '';
     el.appendChild(svgEl);
-
-    var dlBtn = document.createElement('button');
-    dlBtn.className = 'structure-dl';
-    dlBtn.title = 'Download SVG';
-    dlBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3"/><line x1="2" y1="13" x2="14" y2="13"/></svg>';
-    dlBtn.addEventListener('click', function(e) { e.stopPropagation(); downloadSvg(svgEl, dlName); });
-    el.appendChild(dlBtn);
-
-    var cpBtn = document.createElement('button');
-    cpBtn.className = 'structure-dl structure-dl--png';
-    cpBtn.title = 'Copy PNG';
-    cpBtn.innerHTML = '<svg class="structure-png-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="9" height="11" rx="1"/><path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h7A1.5 1.5 0 0 1 15 2.5v9A1.5 1.5 0 0 1 13.5 13H12"/></svg><svg class="structure-png-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="2.5,8.5 6,12 13.5,4.5"/></svg>';
-    cpBtn.addEventListener('click', function(e) { e.stopPropagation(); copyAsPng(svgEl, cpBtn); });
-    el.appendChild(cpBtn);
-
     el.setAttribute('data-sd-rendered', '1');
     el.style.display = '';
     el.style.cursor  = 'zoom-in';
-    el.onclick = function() { openStructureModal(smiles, name, formula); };
+    el.onclick = function() { openStructureModal(smiles, name, formula, cid); };
   }, function() { /* keep hidden */ });
 }
 
@@ -534,14 +572,67 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target === document.getElementById('structure-modal')) { closeStructureModal(); return; }
   });
 
-  // Delegation: copy buttons in lookup result
+  // Delegation: copy buttons + structure actions in lookup result
   document.getElementById('lookup-result').addEventListener('click', function(e) {
     var btn = e.target.closest('.copy-btn');
     if (btn) {
-      var sib = btn.previousElementSibling;
-      if (sib) copyText(btn, sib.textContent);
+      var text = btn.dataset.copy || (btn.previousElementSibling && btn.previousElementSibling.textContent);
+      if (text) copyText(btn, text.trim());
+      return;
+    }
+    var copyBtn = e.target.closest('.str-copy-btn');
+    if (copyBtn) {
+      var svgEl = copyBtn.closest('.structure-col').querySelector('.structure-wrap svg');
+      if (svgEl) copyAsPng(svgEl, copyBtn);
+      return;
+    }
+    var dlToggle = e.target.closest('.str-dl-btn');
+    if (dlToggle) { toggleDlMenu(dlToggle.nextElementSibling); return; }
+    var dlOpt = e.target.closest('.dl-opt');
+    if (dlOpt && dlOpt.closest('.str-dl-wrap')) {
+      var col = dlOpt.closest('.structure-col');
+      var wrap = col.querySelector('.structure-wrap');
+      var svgEl = wrap && wrap.querySelector('svg');
+      var n = wrap && (wrap.dataset.name || wrap.dataset.smiles);
+      var c = wrap && wrap.dataset.cid;
+      var dlName = c ? (n||'structure')+'_CID'+c : (n||'structure');
+      var fmt = dlOpt.dataset.dl;
+      if (fmt==='svg')      downloadSvg(svgEl, dlName);
+      else if (fmt==='png') downloadPng(svgEl, dlName);
+      else if (fmt==='sdf') downloadFromCid(c, dlName, 'sdf');
+      else if (fmt==='xyz') downloadFromCid(c, dlName, 'xyz');
+      dlOpt.closest('.dl-menu').style.display = 'none'; _openDlMenu = null;
+      return;
     }
   });
+
+  // Modal copy + download
+  document.getElementById('modal-copy-btn').addEventListener('click', function() {
+    var svgEl = document.querySelector('#modal-structure svg');
+    if (svgEl) copyAsPng(svgEl, this);
+  });
+  document.getElementById('modal-dl-btn').addEventListener('click', function() {
+    toggleDlMenu(document.getElementById('modal-dl-menu'));
+  });
+  document.getElementById('modal-dl-menu').addEventListener('click', function(e) {
+    var opt = e.target.closest('.dl-opt');
+    if (!opt) return;
+    var svgEl = document.querySelector('#modal-structure svg');
+    var dlName = _modalCID ? (_modalName||'structure')+'_CID'+_modalCID : (_modalName||'structure');
+    var fmt = opt.dataset.dl;
+    if (fmt==='svg')      downloadSvg(svgEl, dlName);
+    else if (fmt==='png') downloadPng(svgEl, dlName);
+    else if (fmt==='sdf') downloadFromCid(_modalCID, dlName, 'sdf');
+    else if (fmt==='xyz') downloadFromCid(_modalCID, dlName, 'xyz');
+    this.style.display = 'none'; _openDlMenu = null;
+  });
+
+  // Close any open dropdown on outside click
+  document.addEventListener('click', function(e) {
+    if (_openDlMenu && !e.target.closest('.str-dl-wrap') && !e.target.closest('#modal-dl-wrap')) {
+      _openDlMenu.style.display = 'none'; _openDlMenu = null;
+    }
+  }, true);
 
   // Batch result filter
   document.getElementById('batch-result').addEventListener('input', function(e) {

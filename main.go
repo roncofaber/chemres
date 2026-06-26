@@ -45,9 +45,10 @@ func main() {
 	mux.Handle("/batch/start",  handlers.NewBatchStartHandler(tmpl, r, store))
 	mux.Handle("/batch/stream", handlers.NewBatchStreamHandler(tmpl, r, store))
 	mux.Handle("/suggest",      handlers.NewSuggestHandler(tmpl, r))
-	mux.HandleFunc("/api/v1/resolve", api.Resolve)
-	mux.HandleFunc("/api/v1/batch",   api.Batch)
-	mux.HandleFunc("/api/v1/suggest", api.Suggest)
+	mux.HandleFunc("/api/v1/resolve",   api.Resolve)
+	mux.HandleFunc("/api/v1/batch",     api.Batch)
+	mux.HandleFunc("/api/v1/suggest",   api.Suggest)
+	mux.HandleFunc("/api/v1/conformer", api.Conformer)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {

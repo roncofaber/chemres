@@ -89,8 +89,8 @@
     <tr class="copyable-row">
       <td>CID</td>
       <td>
-        <a class="field-value code-value" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}</a>
-        <button class="copy-btn" aria-label="Copy CID">
+        <a class="field-value code-value" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">{{.CID}}<span class="pubchem-suffix"> · PubChem ↗</span></a>
+        <button class="copy-btn" data-copy="{{.CID}}" aria-label="Copy CID">
           {{template "icon/copy" .}}{{template "icon/check" .}}
         </button>
       </td>
@@ -99,7 +99,18 @@
   {{if .Canonical}}
   <div class="structure-col">
     <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:none"></div>
-    {{if .CID}}<a class="structure-pubchem-link" href="https://pubchem.ncbi.nlm.nih.gov/compound/{{.CID}}" target="_blank" rel="noopener">PubChem ↗</a>{{end}}
+    <div class="structure-actions">
+      <button class="btn btn-sm btn-secondary str-copy-btn">{{template "icon/copy" .}}{{template "icon/check" .}} PNG</button>
+      <div class="str-dl-wrap">
+        <button class="btn btn-sm btn-secondary str-dl-btn">↓ Download</button>
+        <div class="dl-menu" style="display:none">
+          <button class="dl-opt" data-dl="svg">SVG</button>
+          <button class="dl-opt" data-dl="png">PNG</button>
+          {{if .CID}}<button class="dl-opt" data-dl="sdf">SDF 3D</button>
+          <button class="dl-opt" data-dl="xyz">XYZ</button>{{end}}
+        </div>
+      </div>
+    </div>
   </div>
   {{end}}
   </div>{{/* end result-body */}}
@@ -107,15 +118,15 @@
   <details>
     <summary>Computed properties</summary>
     <div class="comp-props-wrap">
-      {{with propFloat .XLogP 2}}<div class="comp-prop"><span class="comp-label">XLogP</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propFloat .TPSA 1}}<div class="comp-prop"><span class="comp-label">TPSA</span><span class="comp-value">{{.}} Å²</span></div>{{end}}
-      {{if .ExactMass}}<div class="comp-prop"><span class="comp-label">Exact mass</span><span class="comp-value">{{.ExactMass}}</span></div>{{end}}
-      {{with propInt .HBondDonorCount}}<div class="comp-prop"><span class="comp-label">HB donors</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propInt .HBondAcceptorCount}}<div class="comp-prop"><span class="comp-label">HB acceptors</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propInt .RotatableBondCount}}<div class="comp-prop"><span class="comp-label">Rot. bonds</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propInt .AtomStereoCount}}<div class="comp-prop"><span class="comp-label">Stereocenters</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propInt .Charge}}<div class="comp-prop"><span class="comp-label">Charge</span><span class="comp-value">{{.}}</span></div>{{end}}
-      {{with propFloat .Volume3D 1}}<div class="comp-prop"><span class="comp-label">Volume 3D</span><span class="comp-value">{{.}} Å³</span></div>{{end}}
+      {{with propFloat .XLogP 2}}<div class="comp-prop"><span class="comp-label" title="Octanol-water partition coefficient — measure of lipophilicity">XLogP</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propFloat .TPSA 1}}<div class="comp-prop"><span class="comp-label" title="Topological polar surface area — predictor of membrane permeability and absorption">TPSA</span><span class="comp-value">{{.}} Å²</span></div>{{end}}
+      {{if .ExactMass}}<div class="comp-prop"><span class="comp-label" title="Monoisotopic exact mass — most abundant isotopic composition">Exact mass</span><span class="comp-value">{{.ExactMass}}</span></div>{{end}}
+      {{with propInt .HBondDonorCount}}<div class="comp-prop"><span class="comp-label" title="Hydrogen-bond donors (Lipinski rule of 5: ≤ 5)">HB donors</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .HBondAcceptorCount}}<div class="comp-prop"><span class="comp-label" title="Hydrogen-bond acceptors (Lipinski rule of 5: ≤ 10)">HB acceptors</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .RotatableBondCount}}<div class="comp-prop"><span class="comp-label" title="Rotatable bonds — measure of molecular flexibility">Rot. bonds</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .AtomStereoCount}}<div class="comp-prop"><span class="comp-label" title="Total tetrahedral stereocenters (sp3 atoms with defined or undefined configuration)">Stereocenters</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propInt .Charge}}<div class="comp-prop"><span class="comp-label" title="Total formal charge of the molecule">Charge</span><span class="comp-value">{{.}}</span></div>{{end}}
+      {{with propFloat .Volume3D 1}}<div class="comp-prop"><span class="comp-label" title="van der Waals volume computed from the default 3D conformer">Volume 3D</span><span class="comp-value">{{.}} Å³</span></div>{{end}}
     </div>
   </details>
   {{end}}
