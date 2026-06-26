@@ -9,6 +9,7 @@ import (
 
 	"github.com/roncofaber/chemres/internal/jobs"
 	"github.com/roncofaber/chemres/internal/resolver"
+	"github.com/xuri/excelize/v2"
 )
 
 const maxBatchFileSize = 5 << 20
@@ -69,7 +70,7 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		file, _, err := r.FormFile("file")
+		file, header, err := r.FormFile("file")
 		if err != nil {
 			msg := "Please provide inputs via the text area or upload a file."
 			if err.Error() == "http: request body too large" {
@@ -80,20 +81,44 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close()
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if i := strings.Index(line, "#"); i >= 0 {
-				line = strings.TrimSpace(line[:i])
+
+		if strings.HasSuffix(strings.ToLower(header.Filename), ".xlsx") {
+			f, err := excelize.OpenReader(file)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(startResponse{Error: "Could not read Excel file."})
+				return
 			}
-			if line != "" {
-				inputs = append(inputs, line)
+			sheet := f.GetSheetName(0)
+			rows, err := f.GetRows(sheet)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(startResponse{Error: "Could not read Excel sheet."})
+				return
 			}
-		}
-		if err := scanner.Err(); err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(startResponse{Error: "Failed to read uploaded file."})
-			return
+			for _, row := range rows {
+				if len(row) > 0 {
+					if t := strings.TrimSpace(row[0]); t != "" && !strings.HasPrefix(t, "#") {
+						inputs = append(inputs, t)
+					}
+				}
+			}
+		} else {
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				if i := strings.Index(line, "#"); i >= 0 {
+					line = strings.TrimSpace(line[:i])
+				}
+				if line != "" {
+					inputs = append(inputs, line)
+				}
+			}
+			if err := scanner.Err(); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(startResponse{Error: "Failed to read uploaded file."})
+				return
+			}
 		}
 	}
 

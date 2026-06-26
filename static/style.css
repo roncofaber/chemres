@@ -494,6 +494,13 @@ input[type="file"]::file-selector-button:hover {
 .btn:active,
 .btn--pressed { transform: scale(0.98); background: var(--accent-hover); }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 .btn-sm {
   padding: 0.35rem 0.85rem;
   font-size: var(--fs-label);
@@ -979,6 +986,32 @@ details summary::-webkit-details-marker { display: none; }
 .summary-pill.invalid { background: var(--invalid-bg);  color: var(--invalid-text); border: 1px solid var(--invalid-border); }
 .summary-pill.warn    { background: var(--warn-bg);      color: var(--warn-text);    border: 1px solid var(--warn-border);   }
 .summary-pill.neutral { background: var(--surface2);     color: var(--text-muted);   border: 1px solid var(--border-mid);    }
+
+.batch-filter-wrap {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.batch-filter {
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  margin-bottom: 0;
+}
+
+.batch-filter::placeholder { color: var(--text-faint); }
+
+.batch-filter:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow-focus);
+}
 
 .batch-table-wrap { overflow-x: auto; margin-top: 0.5rem; }
 

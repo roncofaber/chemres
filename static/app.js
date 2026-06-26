@@ -199,7 +199,9 @@ function cancelBatch() {
 
 function startBatch(e) {
   e.preventDefault();
-  var form = document.getElementById('batch-form');
+  var form      = document.getElementById('batch-form');
+  var submitBtn = form.querySelector('.btn[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
   var data = new FormData(form);
 
   document.getElementById('batch-result').innerHTML = '';
@@ -260,12 +262,14 @@ function showBatchProgress(fraction, label) {
 }
 
 function hideBatchProgress() {
-  var wrap   = document.getElementById('batch-progress-wrap');
-  var fill   = document.getElementById('batch-progress-fill');
-  var cancel = document.getElementById('batch-cancel');
+  var wrap      = document.getElementById('batch-progress-wrap');
+  var fill      = document.getElementById('batch-progress-fill');
+  var cancel    = document.getElementById('batch-cancel');
+  var submitBtn = document.querySelector('#batch-form .btn[type="submit"]');
   wrap.style.display   = 'none';
   fill.style.width     = '0%';
   cancel.style.display = 'none';
+  if (submitBtn) submitBtn.disabled = false;
 }
 
 function updateSummaryPills() {
@@ -381,6 +385,22 @@ function sortBatchTable(th, colIdx, mode) {
   pairs.forEach(function(pair) {
     tbody.appendChild(pair[0]);
     if (pair[1]) tbody.appendChild(pair[1]);
+  });
+}
+
+function applyBatchFilter(term) {
+  term = term.toLowerCase().trim();
+  document.querySelectorAll('.batch-table tbody tr[data-status]').forEach(function(row) {
+    var visible = !term || row.textContent.toLowerCase().includes(term);
+    row.style.display = visible ? '' : 'none';
+    var expandRow = row.nextElementSibling;
+    if (expandRow && expandRow.classList.contains('expand-row')) {
+      if (!visible) {
+        expandRow.style.display = 'none';
+      } else if (row.classList.contains('row-expanded')) {
+        expandRow.style.display = '';
+      }
+    }
   });
 }
 
@@ -515,6 +535,11 @@ document.addEventListener('DOMContentLoaded', function() {
       var sib = btn.previousElementSibling;
       if (sib) copyText(btn, sib.textContent);
     }
+  });
+
+  // Batch result filter
+  document.getElementById('batch-result').addEventListener('input', function(e) {
+    if (e.target.classList.contains('batch-filter')) applyBatchFilter(e.target.value);
   });
 
   // htmx: after suggestion swap
