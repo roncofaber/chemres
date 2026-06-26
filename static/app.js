@@ -465,8 +465,14 @@ document.addEventListener('DOMContentLoaded', function() {
     _sugBlocked = true;
     setTimeout(function() { _sugBlocked = false; }, 600);
     var btn = this.querySelector('.btn');
+    btn.disabled = true;
     btn.classList.add('btn--pressed');
     setTimeout(function() { btn.classList.remove('btn--pressed'); }, 150);
+  });
+
+  document.getElementById('lookup-form').addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.requestConfig.verb !== 'post') return;
+    this.querySelector('.btn').disabled = false;
   });
 
   // Modal overlay click
