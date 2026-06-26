@@ -10,6 +10,9 @@ import (
 	"github.com/roncofaber/chemres/internal/resolver"
 )
 
+// appVersion is set at build time via -ldflags "-X main.appVersion=v1.x.x"
+var appVersion = "dev"
+
 const csp = "default-src 'self'; " +
 	"script-src 'self' https://unpkg.com; " +
 	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
@@ -57,7 +60,7 @@ func main() {
 				theme = c.Value
 			}
 		}
-		if err := tmpl.ExecuteTemplate(w, "index.html", map[string]string{"Theme": theme}); err != nil {
+		if err := tmpl.ExecuteTemplate(w, "index.html", map[string]string{"Theme": theme, "Version": appVersion}); err != nil {
 			log.Printf("template error: %v", err)
 		}
 	})

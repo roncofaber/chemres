@@ -4,7 +4,8 @@ WORKDIR /app
 COPY go.mod ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o chem-resolver .
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.appVersion=${VERSION}" -o chem-resolver .
 
 # Run stage
 FROM alpine:3.20
