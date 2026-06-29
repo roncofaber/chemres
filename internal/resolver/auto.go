@@ -13,10 +13,13 @@ import (
 // Requires explicit SMILES notation chars OR a pure SMILES-alphabet sequence
 // of length > 2 containing at least one organic element.
 func looksLikeSMILES(s string) bool {
+	if strings.ContainsAny(s, " \t") {
+		return false // SMILES never contain spaces
+	}
 	if strings.ContainsAny(s, "()=[#@/\\") {
 		return true // unambiguous SMILES notation
 	}
-	if len([]rune(s)) <= 2 || strings.ContainsAny(s, " \t") {
+	if len([]rune(s)) <= 2 {
 		return false
 	}
 	for _, c := range s {
@@ -78,7 +81,11 @@ func (r *AutoResolver) resolve(ctx context.Context, input string, withSynonyms b
 		return r.name.resolve(ctx, input, withSynonyms)
 	}
 	if looksLikeSMILES(input) {
-		return r.smiles.resolve(ctx, input, withSynonyms)
+		result, err := r.smiles.resolve(ctx, input, withSynonyms)
+		if err == errBadInput {
+			return r.name.resolve(ctx, input, withSynonyms)
+		}
+		return result, err
 	}
 	if hasNonSmilesChar(input) {
 		return r.name.resolve(ctx, input, withSynonyms)
