@@ -37,6 +37,11 @@ func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms b
 	props, err := r.client.fetchProperties(ctx, namespace, input, postKey)
 	if err == errNotFound {
 		result.Error = "Not found in PubChem"
+		if namespace == "name" {
+			if suggestions, _ := r.client.autocomplete(ctx, input, 5); len(suggestions) > 0 {
+				result.Suggestions = suggestions
+			}
+		}
 		return result, nil
 	}
 	if err == errBadInput {

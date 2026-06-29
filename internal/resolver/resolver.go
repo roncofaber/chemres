@@ -17,9 +17,10 @@ type CompoundResult struct {
 	InChI      string    `json:"inchi,omitempty"`
 	CAS        string    `json:"cas"`
 	CommonName string    `json:"common_name"`
-	Synonyms   []string  `json:"synonyms"`
-	ResolvedAt time.Time `json:"resolved_at"`
-	Error      string    `json:"error,omitempty"`
+	Synonyms    []string  `json:"synonyms"`
+	Suggestions []string  `json:"suggestions,omitempty"`
+	ResolvedAt  time.Time `json:"resolved_at"`
+	Error       string    `json:"error,omitempty"`
 	// Computed physicochemical properties
 	XLogP              *float64 `json:"xlogp,omitempty"`
 	ExactMass          string   `json:"exact_mass,omitempty"`

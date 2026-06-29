@@ -572,6 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target === document.getElementById('structure-modal')) { closeStructureModal(); return; }
   });
 
+  // "Did you mean?" suggestion clicks
+  document.getElementById('lookup-result').addEventListener('click', function(e) {
+    var sug = e.target.closest('.suggestion-btn');
+    if (sug) {
+      document.getElementById('lookup-input').value = sug.dataset.value;
+      document.getElementById('lookup-form').requestSubmit();
+      return;
+    }
+  });
+
   // Delegation: copy buttons + structure actions in lookup result
   document.getElementById('lookup-result').addEventListener('click', function(e) {
     var btn = e.target.closest('.copy-btn');

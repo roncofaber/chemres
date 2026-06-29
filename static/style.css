@@ -544,6 +544,39 @@ input[type="file"]::file-selector-button:hover {
   box-shadow: 0 0 0 1px var(--invalid-glow);
 }
 
+.suggestions-wrap {
+  margin-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.suggestions-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--error-text);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.suggestion-btn {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--accent);
+  background: var(--accent-bg-faint);
+  border: 1px solid var(--accent-glow-focus);
+  border-radius: var(--radius);
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.suggestion-btn:hover {
+  background: var(--accent-bg-subtle);
+  border-color: var(--accent);
+}
+
 /* ── Status badge ────────────────────────────────────────────── */
 .status-badge {
   display: inline-block;

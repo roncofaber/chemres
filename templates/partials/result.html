@@ -2,6 +2,12 @@
 <div class="result-box error">
   <span class="status-badge error-tag">Error</span>
   <p>{{.Error}}</p>
+  {{if .Suggestions}}
+  <div class="suggestions-wrap">
+    <span class="suggestions-label">Did you mean:</span>
+    {{range .Suggestions}}<button class="suggestion-btn" data-value="{{.}}">{{.}}</button>{{end}}
+  </div>
+  {{end}}
 </div>
 {{else}}
 <div class="result-box valid">
