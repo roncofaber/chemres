@@ -148,9 +148,8 @@ function openStructureModal(smiles, name, formula, cid) {
   modal.classList.add("is-open");
   document.body.style.overflow = 'hidden';
 
-  var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
-  drawer.draw(largest, null, currentTheme(), function(svgEl) {
+  drawer.draw(smiles, null, currentTheme(), function(svgEl) {
     cont.appendChild(svgEl);
   }, function() {
     cont.innerHTML = '<p style="color:var(--error-text);padding:1rem;font-family:var(--font-mono);font-size:0.8rem">Could not render structure.</p>';
@@ -170,9 +169,8 @@ function drawStructure(el) {
   var formula = el.getAttribute('data-formula') || '';
   var cid     = el.getAttribute('data-cid');
   var dlName  = cid ? name + '_CID' + cid : name;
-  var largest = smiles.split('.').reduce(function(a, b) { return a.length >= b.length ? a : b; });
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
-  drawer.draw(largest, null, currentTheme(), function(svgEl) {
+  drawer.draw(smiles, null, currentTheme(), function(svgEl) {
     el.innerHTML = '';
     el.appendChild(svgEl);
     el.setAttribute('data-sd-rendered', '1');
