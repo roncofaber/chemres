@@ -1608,17 +1608,17 @@ textarea:focus {
 /* ── GHS hazards ─────────────────────────────────────────────────────────── */
 
 .ghs-icons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, 38px);
+  gap: 4px;
+  margin-top: 0.6rem;
 }
 
 .ghs-icon {
-  width: 28px;
-  height: 28px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
-  opacity: 0.85;
+  opacity: 0.88;
   transition: opacity 0.12s;
 }
 
