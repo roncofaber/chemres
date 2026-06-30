@@ -309,6 +309,163 @@ func (c *pubchemClient) fetchSynonymsBatch(ctx context.Context, cids []int) (map
 	return m, nil
 }
 
+// ── GHS ──────────────────────────────────────────────────────────────────────
+
+type ghsMarkup struct {
+	Type  string `json:"Type"`
+	URL   string `json:"URL"`
+	Extra string `json:"Extra"`
+}
+
+type ghsStringWithMarkup struct {
+	String string       `json:"String"`
+	Markup []ghsMarkup  `json:"Markup"`
+}
+
+type ghsValue struct {
+	StringWithMarkup []ghsStringWithMarkup `json:"StringWithMarkup"`
+}
+
+type ghsInfoEntry struct {
+	ReferenceNumber int      `json:"ReferenceNumber"`
+	Name            string   `json:"Name"`
+	Value           ghsValue `json:"Value"`
+}
+
+type ghsSectionInner struct {
+	TOCHeading  string         `json:"TOCHeading"`
+	Information []ghsInfoEntry `json:"Information"`
+}
+
+type ghsSectionMid struct {
+	TOCHeading string            `json:"TOCHeading"`
+	Section    []ghsSectionInner `json:"Section"`
+}
+
+type ghsSectionOuter struct {
+	TOCHeading string          `json:"TOCHeading"`
+	Section    []ghsSectionMid `json:"Section"`
+}
+
+type ghsRecord struct {
+	Section []ghsSectionOuter `json:"Section"`
+}
+
+type ghsResponse struct {
+	Record ghsRecord `json:"Record"`
+}
+
+// fetchGHS returns GHS classification for the given CID, or nil if none / not classified.
+func (c *pubchemClient) fetchGHS(ctx context.Context, cid int) (*GHSData, error) {
+	u := fmt.Sprintf("https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%d/JSON?heading=GHS+Classification", cid)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.do(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("pug_view ghs returned %d", resp.StatusCode)
+	}
+
+	var gr ghsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gr); err != nil {
+		return nil, err
+	}
+
+	// Navigate: Record.Section[Safety].Section[Hazards].Section[GHS Classification]
+	var infos []ghsInfoEntry
+	for _, outer := range gr.Record.Section {
+		for _, mid := range outer.Section {
+			for _, inner := range mid.Section {
+				if inner.TOCHeading == "GHS Classification" {
+					infos = inner.Information
+				}
+			}
+		}
+	}
+	if len(infos) == 0 {
+		return nil, nil
+	}
+
+	// Group by ReferenceNumber; prefer the ECHA aggregated entry (has > 1 field including
+	// "ECHA C&L Notifications Summary"), fall back to first group.
+	type group struct {
+		ref     int
+		entries []ghsInfoEntry
+	}
+	order := []int{}
+	byRef := map[int][]ghsInfoEntry{}
+	for _, info := range infos {
+		if _, seen := byRef[info.ReferenceNumber]; !seen {
+			order = append(order, info.ReferenceNumber)
+		}
+		byRef[info.ReferenceNumber] = append(byRef[info.ReferenceNumber], info)
+	}
+
+	chosen := order[0]
+	for _, ref := range order {
+		for _, e := range byRef[ref] {
+			if e.Name == "ECHA C&L Notifications Summary" {
+				chosen = ref
+				break
+			}
+		}
+		if chosen != order[0] {
+			break
+		}
+	}
+
+	entries := byRef[chosen]
+
+	ghs := &GHSData{}
+	for _, e := range entries {
+		switch e.Name {
+		case "Signal":
+			if len(e.Value.StringWithMarkup) > 0 {
+				ghs.Signal = strings.TrimSpace(e.Value.StringWithMarkup[0].String)
+			}
+		case "Pictogram(s)":
+			seen := map[string]bool{}
+			for _, swm := range e.Value.StringWithMarkup {
+				for _, m := range swm.Markup {
+					if m.Type == "Icon" && m.URL != "" {
+						// Extract "GHS02" from URL ending in "/GHS02.svg"
+						parts := strings.Split(m.URL, "/")
+						name := strings.TrimSuffix(parts[len(parts)-1], ".svg")
+						if name != "" && !seen[name] {
+							seen[name] = true
+							ghs.Pictograms = append(ghs.Pictograms, name)
+						}
+					}
+				}
+			}
+		case "GHS Hazard Statements":
+			for _, swm := range e.Value.StringWithMarkup {
+				s := strings.TrimSpace(swm.String)
+				if s != "" && s != "Not Classified" {
+					ghs.HStatements = append(ghs.HStatements, s)
+				}
+			}
+		case "Precautionary Statement Codes":
+			if len(e.Value.StringWithMarkup) > 0 {
+				ghs.PCodes = strings.TrimSpace(e.Value.StringWithMarkup[0].String)
+			}
+		}
+	}
+
+	if len(ghs.HStatements) == 0 {
+		return nil, nil // not classified or no data
+	}
+	return ghs, nil
+}
+
 type autocompleteResponse struct {
 	DictionaryTerms struct {
 		Compound []string `json:"compound"`

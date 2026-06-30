@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var digitRE = regexp.MustCompile(`\d+`)
@@ -46,11 +47,23 @@ func propInt(p *int) string {
 	return fmt.Sprintf("%d", *p)
 }
 
+// formatHStatement splits "H225: Highly Flammable..." into a bolded code + text.
+func formatHStatement(s string) template.HTML {
+	if idx := strings.Index(s, ":"); idx > 0 {
+		code := template.HTMLEscapeString(s[:idx])
+		rest := template.HTMLEscapeString(s[idx+1:])
+		return template.HTML("<span class=\"hcode\">" + code + "</span>" + rest)
+	}
+	return template.HTML(template.HTMLEscapeString(s))
+}
+
 var funcMap = template.FuncMap{
-	"formatFormula": formatFormula,
-	"compoundTitle": compoundTitle,
-	"propFloat":     propFloat,
-	"propInt":       propInt,
+	"formatFormula":   formatFormula,
+	"compoundTitle":   compoundTitle,
+	"propFloat":       propFloat,
+	"propInt":         propInt,
+	"formatHStatement": formatHStatement,
+	"lower":           strings.ToLower,
 }
 
 func MustLoadTemplates(dir string) *template.Template {

@@ -87,14 +87,44 @@ func (r *NameResolver) resolve(ctx context.Context, input string, withSynonyms b
 	result.Volume3D            = p.Volume3D
 
 	if withSynonyms {
-		if cas, syns, err := r.client.fetchSynonyms(ctx, p.CID); err != nil {
-			log.Printf("WARN fetchSynonyms cid=%d: %v", p.CID, err)
-		} else if cas != "" || len(syns) > 0 {
-			result.CAS     = cas
-			result.Synonyms = syns
+		type synResult struct {
+			cas  string
+			syns []string
+			err  error
+		}
+		type ghsResult struct {
+			ghs *GHSData
+			err error
+		}
+
+		synCh := make(chan synResult, 1)
+		ghsCh := make(chan ghsResult, 1)
+
+		go func() {
+			cas, syns, err := r.client.fetchSynonyms(ctx, p.CID)
+			synCh <- synResult{cas, syns, err}
+		}()
+		go func() {
+			ghs, err := r.client.fetchGHS(ctx, p.CID)
+			ghsCh <- ghsResult{ghs, err}
+		}()
+
+		sr := <-synCh
+		if sr.err != nil {
+			log.Printf("WARN fetchSynonyms cid=%d: %v", p.CID, sr.err)
+		} else if sr.cas != "" || len(sr.syns) > 0 {
+			result.CAS      = sr.cas
+			result.Synonyms = sr.syns
 			if result.CommonName == "" {
-				result.CommonName = firstCommonName(syns)
+				result.CommonName = firstCommonName(sr.syns)
 			}
+		}
+
+		gr := <-ghsCh
+		if gr.err != nil {
+			log.Printf("WARN fetchGHS cid=%d: %v", p.CID, gr.err)
+		} else {
+			result.GHS = gr.ghs
 		}
 	}
 	return result, nil

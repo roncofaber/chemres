@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type GHSData struct {
+	Signal      string   `json:"signal"`
+	Pictograms  []string `json:"pictograms"`
+	HStatements []string `json:"h_statements"`
+	PCodes      string   `json:"p_codes,omitempty"`
+}
+
 type CompoundResult struct {
 	Input      string    `json:"input"`
 	CID        int       `json:"cid"`
@@ -19,6 +26,7 @@ type CompoundResult struct {
 	CommonName string    `json:"common_name"`
 	Synonyms    []string  `json:"synonyms"`
 	Suggestions []string  `json:"suggestions,omitempty"`
+	GHS         *GHSData  `json:"ghs,omitempty"`
 	ResolvedAt  time.Time `json:"resolved_at"`
 	Error       string    `json:"error,omitempty"`
 	// Computed physicochemical properties

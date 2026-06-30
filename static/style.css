@@ -1604,3 +1604,80 @@ textarea:focus {
   border-color: var(--border-hi);
   color: var(--text);
 }
+
+/* ── GHS hazards ─────────────────────────────────────────────────────────── */
+
+.ghs-icons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.ghs-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0.85;
+  transition: opacity 0.12s;
+}
+
+.ghs-icon:hover { opacity: 1; }
+
+.signal-badge {
+  display: inline-block;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.1em 0.45em;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+.signal-badge.signal-danger {
+  background: color-mix(in srgb, var(--error-text) 12%, transparent);
+  color: var(--error-text);
+  border: 1px solid color-mix(in srgb, var(--error-text) 30%, transparent);
+}
+
+.signal-badge.signal-warning {
+  background: color-mix(in srgb, var(--warn-text) 12%, transparent);
+  color: var(--warn-text);
+  border: 1px solid color-mix(in srgb, var(--warn-text) 30%, transparent);
+}
+
+.hazards-wrap {
+  padding: 0.5rem 0 0.25rem 0.1rem;
+}
+
+.h-statements {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.h-statements li {
+  font-size: var(--fs-ui);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.hcode {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 0.35rem;
+}
+
+.p-codes {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
