@@ -47,14 +47,50 @@ func propInt(p *int) string {
 	return fmt.Sprintf("%d", *p)
 }
 
-// formatHStatement splits "H225: Highly Flammable..." into a bolded code + text.
+// formatHStatement parses "H300 (99.8%): Fatal if swallowed [Danger ...]"
+// into three aligned spans: code, percentage, description (bracket dropped).
 func formatHStatement(s string) template.HTML {
-	if idx := strings.Index(s, ":"); idx > 0 {
-		code := template.HTMLEscapeString(s[:idx])
-		rest := template.HTMLEscapeString(s[idx+1:])
-		return template.HTML("<span class=\"hcode\">" + code + "</span>" + rest)
+	// Extract code: up to first space or '('
+	code := s
+	rest := ""
+	if i := strings.IndexAny(s, " ("); i > 0 {
+		code = s[:i]
+		rest = strings.TrimSpace(s[i:])
 	}
-	return template.HTML(template.HTMLEscapeString(s))
+
+	// Extract percentage: optional "(xx%)" or "(> xx%)" before the colon
+	pct := ""
+	if strings.HasPrefix(rest, "(") {
+		end := strings.Index(rest, ")")
+		if end > 0 {
+			pct = rest[1:end]
+			rest = strings.TrimSpace(rest[end+1:])
+		}
+	}
+
+	// Skip leading colon
+	rest = strings.TrimPrefix(rest, ":")
+	rest = strings.TrimSpace(rest)
+
+	// Separate bracket category "[Danger ...]" for muted display
+	cat := ""
+	if i := strings.Index(rest, "["); i > 0 {
+		if j := strings.LastIndex(rest, "]"); j > i {
+			cat = rest[i : j+1]
+		}
+		rest = strings.TrimSpace(rest[:i])
+	}
+
+	h := `<span class="hcode">` + template.HTMLEscapeString(code) + `</span>`
+	if pct != "" {
+		h += `<span class="hpct">` + template.HTMLEscapeString(pct) + `</span>`
+	}
+	h += `<span class="hdesc">` + template.HTMLEscapeString(rest)
+	if cat != "" {
+		h += ` <span class="hcat">` + template.HTMLEscapeString(cat) + `</span>`
+	}
+	h += `</span>`
+	return template.HTML(h)
 }
 
 var funcMap = template.FuncMap{
@@ -63,7 +99,6 @@ var funcMap = template.FuncMap{
 	"propFloat":       propFloat,
 	"propInt":         propInt,
 	"formatHStatement": formatHStatement,
-	"lower":           strings.ToLower,
 }
 
 func MustLoadTemplates(dir string) *template.Template {

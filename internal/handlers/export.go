@@ -48,8 +48,21 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 
+	hasGHS := false
+	for _, res := range results {
+		if res.GHS != nil {
+			hasGHS = true
+			break
+		}
+	}
+
 	cw := csv.NewWriter(w)
-	cw.Write([]string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "ExactMass", "CAS", "InChIKey", "InChI", "CanonicalSMILES", "IsomericSMILES", "XLogP", "TPSA", "HBondDonors", "HBondAcceptors", "RotatableBonds", "AtomStereoCount", "Charge", "Volume3D", "ResolvedAt", "Error"})
+	header := []string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "ExactMass", "CAS", "InChIKey", "InChI", "CanonicalSMILES", "IsomericSMILES", "XLogP", "TPSA", "HBondDonors", "HBondAcceptors", "RotatableBonds", "AtomStereoCount", "Charge", "Volume3D", "ResolvedAt", "Error"}
+	if hasGHS {
+		header = append(header, "GHSSignal", "GHSPictograms", "GHSHazardCodes", "GHSPrecautionaryCodes")
+	}
+	cw.Write(header)
+
 	for _, res := range results {
 		cid := ""
 		pubchemURL := ""
@@ -61,7 +74,7 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if !res.ResolvedAt.IsZero() {
 			resolvedAt = res.ResolvedAt.UTC().Format("2006-01-02T15:04:05Z")
 		}
-		cw.Write([]string{
+		row := []string{
 			res.Input, cid, pubchemURL, res.IUPAC, res.CommonName, res.Formula, res.MW,
 			res.ExactMass, res.CAS, res.InChIKey, res.InChI, res.Canonical, res.Isomeric,
 			propFloat(res.XLogP, 2), propFloat(res.TPSA, 1),
@@ -69,7 +82,28 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			propInt(res.RotatableBondCount), propInt(res.AtomStereoCount),
 			propInt(res.Charge), propFloat(res.Volume3D, 1),
 			resolvedAt, res.Error,
-		})
+		}
+		if hasGHS {
+			if res.GHS != nil {
+				hcodes := make([]string, len(res.GHS.HStatements))
+				for i, h := range res.GHS.HStatements {
+					if idx := strings.IndexAny(h, " ("); idx > 0 {
+						hcodes[i] = h[:idx]
+					} else {
+						hcodes[i] = h
+					}
+				}
+				row = append(row,
+					res.GHS.Signal,
+					strings.Join(res.GHS.Pictograms, ";"),
+					strings.Join(hcodes, ";"),
+					res.GHS.PCodes,
+				)
+			} else {
+				row = append(row, "", "", "", "")
+			}
+		}
+		cw.Write(row)
 	}
 	cw.Flush()
 	if err := cw.Error(); err != nil {

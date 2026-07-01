@@ -5,6 +5,24 @@ import (
 	"time"
 )
 
+type BatchOpts struct {
+	Synonyms bool
+	GHS      bool
+}
+
+type batchOptsKey struct{}
+
+func WithBatchOpts(ctx context.Context, opts BatchOpts) context.Context {
+	return context.WithValue(ctx, batchOptsKey{}, opts)
+}
+
+func batchOptsFrom(ctx context.Context) BatchOpts {
+	if opts, ok := ctx.Value(batchOptsKey{}).(BatchOpts); ok {
+		return opts
+	}
+	return BatchOpts{Synonyms: true}
+}
+
 type GHSData struct {
 	Signal      string   `json:"signal"`
 	Pictograms  []string `json:"pictograms"`

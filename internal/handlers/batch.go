@@ -129,10 +129,15 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ip := realClientIP(r)
+	opts := resolver.BatchOpts{
+		Synonyms: r.FormValue("opt_synonyms") != "0",
+		GHS:      r.FormValue("opt_ghs") == "1",
+	}
 	id, job := h.store.New(len(inputs))
 
 	go func() {
 		ctx := resolver.WithClientIP(job.Ctx, ip)
+		ctx = resolver.WithBatchOpts(ctx, opts)
 		results, err := h.resolver.BatchWithProgress(ctx, inputs, func(_, _ int) { job.Incr() })
 		job.Finish(results, err)
 	}()

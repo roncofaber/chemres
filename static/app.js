@@ -239,6 +239,10 @@ function startBatch(e) {
   var submitBtn = form.querySelector('.btn[type="submit"]');
   if (submitBtn) submitBtn.disabled = true;
   var data = new FormData(form);
+  var synonymsCb = document.getElementById('opt-synonyms');
+  var ghsCb      = document.getElementById('opt-ghs');
+  data.set('opt_synonyms', synonymsCb && !synonymsCb.checked ? '0' : '1');
+  data.set('opt_ghs',      ghsCb && ghsCb.checked ? '1' : '0');
 
   document.getElementById('batch-result').innerHTML = '';
   document.getElementById('batch-reset').style.display = 'flex';

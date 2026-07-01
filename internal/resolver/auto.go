@@ -102,6 +102,8 @@ func (r *AutoResolver) Resolve(ctx context.Context, input string) (CompoundResul
 }
 
 func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, onResolve func(done, total int)) ([]CompoundResult, error) {
+	opts := batchOptsFrom(ctx)
+
 	results := make([]CompoundResult, len(inputs))
 	sem := make(chan struct{}, batchWorkers)
 	var wg sync.WaitGroup
@@ -135,24 +137,81 @@ func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, o
 		}
 	}
 
-	if len(cids) > 0 {
-		synMap, err := r.name.client.fetchSynonymsBatch(ctx, cids)
-		if err != nil {
-			log.Printf("WARN fetchSynonymsBatch: %v", err)
+	if len(cids) == 0 {
+		return results, nil
+	}
+
+	type synRes struct{ m map[int]synonymBatchEntry; err error }
+	type ghsRes struct{ m map[int]*GHSData; err error }
+
+	synCh := make(chan synRes, 1)
+	ghsCh := make(chan ghsRes, 1)
+
+	go func() {
+		if !opts.Synonyms {
+			synCh <- synRes{}
+			return
 		}
-		if err == nil && synMap != nil {
-			for cid, idxs := range cidIdx {
-				entry, ok := synMap[cid]
-				if !ok {
-					continue
+		m, err := r.name.client.fetchSynonymsBatch(ctx, cids)
+		synCh <- synRes{m, err}
+	}()
+
+	go func() {
+		if !opts.GHS {
+			ghsCh <- ghsRes{}
+			return
+		}
+		ghsMap := make(map[int]*GHSData, len(cids))
+		var mu sync.Mutex
+		var wg2 sync.WaitGroup
+		sem2 := make(chan struct{}, batchWorkers)
+		for _, cid := range cids {
+			wg2.Add(1)
+			go func(c int) {
+				defer wg2.Done()
+				sem2 <- struct{}{}
+				defer func() { <-sem2 }()
+				ghs, err := r.name.client.fetchGHS(ctx, c)
+				if err != nil {
+					log.Printf("WARN fetchGHS cid=%d: %v", c, err)
+					return
 				}
-				for _, i := range idxs {
-					results[i].CAS     = entry.CAS
-					results[i].Synonyms = entry.Synonyms
-					if results[i].CommonName == "" {
-						results[i].CommonName = firstCommonName(entry.Synonyms)
-					}
+				mu.Lock()
+				ghsMap[c] = ghs
+				mu.Unlock()
+			}(cid)
+		}
+		wg2.Wait()
+		ghsCh <- ghsRes{ghsMap, nil}
+	}()
+
+	sr := <-synCh
+	gr := <-ghsCh
+
+	if sr.err != nil {
+		log.Printf("WARN fetchSynonymsBatch: %v", sr.err)
+	}
+	if len(sr.m) > 0 {
+		for cid, idxs := range cidIdx {
+			entry, ok := sr.m[cid]
+			if !ok {
+				continue
+			}
+			for _, i := range idxs {
+				results[i].CAS      = entry.CAS
+				results[i].Synonyms = entry.Synonyms
+				if results[i].CommonName == "" {
+					results[i].CommonName = firstCommonName(entry.Synonyms)
 				}
+			}
+		}
+	}
+
+	if len(gr.m) > 0 {
+		for cid, idxs := range cidIdx {
+			ghs := gr.m[cid]
+			for _, i := range idxs {
+				results[i].GHS = ghs
 			}
 		}
 	}

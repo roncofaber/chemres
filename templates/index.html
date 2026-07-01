@@ -72,7 +72,7 @@
     </section>
 
     <section class="card">
-      <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">ⓘ</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span></p>
+      <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">ⓘ</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span><span class="batch-fetch-opts"><label class="fetch-opt"><input type="checkbox" id="opt-synonyms" checked><span>Synonyms</span></label><label class="fetch-opt"><input type="checkbox" id="opt-ghs"><span>GHS</span></label></span></p>
       <button class="card-reset" id="batch-reset" aria-label="Clear" style="display:none">
         {{template "icon/rotate-ccw" .}}
         Clear

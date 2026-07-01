@@ -410,14 +410,16 @@ func (c *pubchemClient) fetchGHS(ctx context.Context, cid int) (*GHSData, error)
 	}
 
 	chosen := order[0]
+	foundECHA := false
 	for _, ref := range order {
 		for _, e := range byRef[ref] {
 			if e.Name == "ECHA C&L Notifications Summary" {
 				chosen = ref
+				foundECHA = true
 				break
 			}
 		}
-		if chosen != order[0] {
+		if foundECHA {
 			break
 		}
 	}
@@ -449,7 +451,7 @@ func (c *pubchemClient) fetchGHS(ctx context.Context, cid int) (*GHSData, error)
 		case "GHS Hazard Statements":
 			for _, swm := range e.Value.StringWithMarkup {
 				s := strings.TrimSpace(swm.String)
-				if s != "" && s != "Not Classified" {
+				if len(s) > 1 && s[0] == 'H' && s[1] >= '0' && s[1] <= '9' {
 					ghs.HStatements = append(ghs.HStatements, s)
 				}
 			}

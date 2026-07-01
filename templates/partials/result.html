@@ -119,7 +119,7 @@
     </div>
     {{if and .GHS .GHS.Pictograms}}
     <div class="ghs-icons">
-      {{range .GHS.Pictograms}}<img src="/static/ghs/{{.}}.svg" alt="{{.}}" class="ghs-icon" title="{{.}}">{{end}}
+      {{range .GHS.Pictograms}}<div class="ghs-icon-wrap"><img src="/static/ghs/{{.}}.svg" alt="{{.}}" class="ghs-icon" title="{{.}}"></div>{{end}}
     </div>
     {{end}}
   </div>
@@ -143,12 +143,16 @@
   {{end}}
   {{if and .GHS .GHS.HStatements}}
   <details>
-    <summary>Hazards <span class="signal-badge signal-{{lower .GHS.Signal}}">{{.GHS.Signal}}</span></summary>
+    <summary>Hazards</summary>
     <div class="hazards-wrap">
+      <p class="hazard-section-label">Hazard statements</p>
       <ul class="h-statements">
         {{range .GHS.HStatements}}<li>{{formatHStatement .}}</li>{{end}}
       </ul>
-      {{if .GHS.PCodes}}<p class="p-codes">{{.GHS.PCodes}}</p>{{end}}
+      {{if .GHS.PCodes}}
+      <p class="hazard-section-label">Precautionary statements</p>
+      <p class="p-codes">{{.GHS.PCodes}}</p>
+      {{end}}
     </div>
   </details>
   {{end}}
