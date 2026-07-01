@@ -72,13 +72,19 @@
     </section>
 
     <section class="card">
-      <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">ⓘ</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span><span class="batch-fetch-opts"><label class="fetch-opt"><input type="checkbox" id="opt-synonyms" checked><span>Synonyms</span></label><label class="fetch-opt"><input type="checkbox" id="opt-ghs"><span>GHS</span></label></span></p>
+      <p class="card-title">Batch<span class="card-title-hint-wrap"><span class="card-title-hint">ⓘ</span><span class="card-title-tooltip">Rate limited to 4 requests/s per user via PubChem API</span></span></p>
       <button class="card-reset" id="batch-reset" aria-label="Clear" style="display:none">
         {{template "icon/rotate-ccw" .}}
         Clear
       </button>
       <form id="batch-form">
-        <label for="batch-inputs">Identifiers (one per line)</label>
+        <div class="label-row">
+          <label for="batch-inputs">Identifiers (one per line)</label>
+          <span class="batch-fetch-opts">
+            <label class="fetch-opt"><input type="checkbox" id="opt-synonyms" checked><span>Synonyms</span></label>
+            <label class="fetch-opt"><input type="checkbox" id="opt-ghs"><span>GHS</span></label>
+          </span>
+        </div>
         <textarea id="batch-inputs" name="inputs" rows="5"
                   placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
                   spellcheck="false"></textarea>

@@ -125,6 +125,22 @@
   </div>
   {{end}}
   </div>{{/* end result-body */}}
+  {{if and .GHS .GHS.HStatements}}
+  <details>
+    <summary>Hazards</summary>
+    <div class="hazards-wrap">
+      <p class="hazard-section-label">Hazard statements</p>
+      <ul class="h-statements">
+        {{range .GHS.HStatements}}<li>{{formatHStatement .}}</li>{{end}}
+      </ul>
+      {{if .GHS.PCodes}}
+      <p class="hazard-section-label">Precautionary statements</p>
+      <p class="p-codes">{{.GHS.PCodes}}</p>
+      {{end}}
+      <p class="hazard-source"><a href="https://echa.europa.eu/information-on-chemicals/cl-inventory-database" target="_blank" rel="noopener">Source: ECHA C&amp;L Inventory</a></p>
+    </div>
+  </details>
+  {{end}}
   {{if or .XLogP .TPSA .HBondDonorCount .HBondAcceptorCount .RotatableBondCount .ExactMass .AtomStereoCount .Charge .Volume3D}}
   <details>
     <summary>Computed properties</summary>
@@ -138,21 +154,6 @@
       {{with propInt .AtomStereoCount}}<div class="comp-prop"><span class="comp-label" title="Total tetrahedral stereocenters (sp3 atoms with defined or undefined configuration)">Stereocenters</span><span class="comp-value">{{.}}</span></div>{{end}}
       {{with propInt .Charge}}<div class="comp-prop"><span class="comp-label" title="Total formal charge of the molecule">Charge</span><span class="comp-value">{{.}}</span></div>{{end}}
       {{with propFloat .Volume3D 1}}<div class="comp-prop"><span class="comp-label" title="van der Waals volume computed from the default 3D conformer">Volume 3D</span><span class="comp-value">{{.}} Å³</span></div>{{end}}
-    </div>
-  </details>
-  {{end}}
-  {{if and .GHS .GHS.HStatements}}
-  <details>
-    <summary>Hazards</summary>
-    <div class="hazards-wrap">
-      <p class="hazard-section-label">Hazard statements</p>
-      <ul class="h-statements">
-        {{range .GHS.HStatements}}<li>{{formatHStatement .}}</li>{{end}}
-      </ul>
-      {{if .GHS.PCodes}}
-      <p class="hazard-section-label">Precautionary statements</p>
-      <p class="p-codes">{{.GHS.PCodes}}</p>
-      {{end}}
     </div>
   </details>
   {{end}}

@@ -341,8 +341,18 @@ body {
   opacity: 1;
 }
 
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.label-row label {
+  margin-bottom: 0;
+}
+
 .batch-fetch-opts {
-  margin-left: auto;
   display: flex;
   gap: 0.75rem;
   align-items: center;
@@ -1662,6 +1672,7 @@ textarea:focus {
 }
 
 .hazard-section-label {
+  font-family: var(--font-sans);
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -1686,6 +1697,7 @@ textarea:focus {
   grid-template-columns: 3.2rem 3.8rem 1fr;
   align-items: baseline;
   gap: 0;
+  font-family: var(--font-sans);
   font-size: var(--fs-data);
   line-height: 1.45;
 }
@@ -1710,6 +1722,7 @@ textarea:focus {
 }
 
 .hcat {
+  font-family: var(--font-sans);
   font-size: var(--fs-micro);
   color: var(--text-muted);
   opacity: 0.7;
@@ -1721,4 +1734,18 @@ textarea:focus {
   color: var(--text-muted);
   margin: 0;
   line-height: 1.6;
+}
+
+.hazard-source {
+  font-family: var(--font-sans);
+  font-size: var(--fs-micro);
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+  opacity: 0.7;
+}
+
+.hazard-source a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
