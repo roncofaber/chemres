@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"html/template"
+	"io"
 	"net/http"
 	"strings"
 
@@ -28,6 +29,7 @@ type batchData struct {
 	Summary     batchSummary
 	Error       string
 	SystemID    string
+	HasRoles    bool
 }
 
 type BatchStartHandler struct {
@@ -55,6 +57,7 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxBatchFileSize)
 
 	var inputs []string
+	var roleMap map[string]string
 
 	if raw := strings.TrimSpace(r.FormValue("inputs")); raw != "" {
 		scanner := bufio.NewScanner(strings.NewReader(raw))
@@ -82,7 +85,25 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		if strings.HasSuffix(strings.ToLower(header.Filename), ".xlsx") {
+		if strings.HasSuffix(strings.ToLower(header.Filename), ".cdxml") {
+			data, err := io.ReadAll(file)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(startResponse{Error: "Could not read CDXML file."})
+				return
+			}
+			entries, err := parseCDXML(data)
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(startResponse{Error: "Could not parse CDXML file."})
+				return
+			}
+			roleMap = make(map[string]string, len(entries))
+			for _, e := range entries {
+				inputs = append(inputs, e.Input)
+				roleMap[e.Input] = e.Role
+			}
+		} else if strings.HasSuffix(strings.ToLower(header.Filename), ".xlsx") {
 			f, err := excelize.OpenReader(file)
 			if err != nil {
 				w.Header().Set("Content-Type", "application/json")
@@ -139,6 +160,13 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx := resolver.WithClientIP(job.Ctx, ip)
 		ctx = resolver.WithBatchOpts(ctx, opts)
 		results, err := h.resolver.BatchWithProgress(ctx, inputs, func(_, _ int) { job.Incr() })
+		if err == nil {
+			for i := range results {
+				if roleMap != nil {
+					results[i].Role = roleMap[results[i].Input]
+				}
+			}
+		}
 		job.Finish(results, err)
 	}()
 

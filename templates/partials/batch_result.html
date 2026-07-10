@@ -26,11 +26,12 @@
       <thead>
         <tr>
           <th class="sortable" data-sort-col="0" data-sort-mode="text">Input<span class="sort-indicator">↕</span></th>
-          <th class="sortable" data-sort-col="1" data-sort-mode="status">Status<span class="sort-indicator">↕</span></th>
-          <th class="sortable" data-sort-col="2" data-sort-mode="text">IUPAC<span class="sort-indicator">↕</span></th>
-          <th class="sortable" data-sort-col="3" data-sort-mode="text">Formula<span class="sort-indicator">↕</span></th>
-          <th class="sortable" data-sort-col="4" data-sort-mode="num">MW<span class="sort-indicator">↕</span></th>
-          <th class="sortable" data-sort-col="5" data-sort-mode="text">CAS<span class="sort-indicator">↕</span></th>
+          {{if .HasRoles}}<th class="sortable" data-sort-col="1" data-sort-mode="text">Role<span class="sort-indicator">↕</span></th>{{end}}
+          <th class="sortable" data-sort-col="{{if .HasRoles}}2{{else}}1{{end}}" data-sort-mode="status">Status<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="{{if .HasRoles}}3{{else}}2{{end}}" data-sort-mode="text">IUPAC<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="{{if .HasRoles}}4{{else}}3{{end}}" data-sort-mode="text">Formula<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="{{if .HasRoles}}5{{else}}4{{end}}" data-sort-mode="num">MW<span class="sort-indicator">↕</span></th>
+          <th class="sortable" data-sort-col="{{if .HasRoles}}6{{else}}5{{end}}" data-sort-mode="text">CAS<span class="sort-indicator">↕</span></th>
           <th class="expand-chevron"></th>
         </tr>
       </thead>
@@ -39,6 +40,7 @@
         {{$found := eq .Error ""}}
         <tr data-status="{{if .Error}}{{if eq .Error "Not found in PubChem"}}notfound{{else}}error{{end}}{{else}}found{{end}}"{{if $found}} class="expandable-row"{{end}}>
           <td class="col-code">{{.Input}}</td>
+          {{if $.HasRoles}}<td class="col-role">{{.Role}}</td>{{end}}
           <td class="col-status">
             {{if .Error}}{{if eq .Error "Not found in PubChem"}}<span class="chip warn">Not found</span>{{else}}<span class="chip error-tag" title="{{.Error}}">Error</span><button class="btn-retry" data-input="{{.Input}}" title="Retry">↺</button>{{end}}
             {{else}}<span class="chip valid">Found</span>{{end}}
@@ -51,7 +53,7 @@
         </tr>
         {{if $found}}
         <tr class="expand-row" style="display:none">
-          <td colspan="7" class="expand-cell">
+          <td colspan="{{if $.HasRoles}}8{{else}}7{{end}}" class="expand-cell">
             <div class="expand-card">
               {{if .Canonical}}
               <div class="structure-wrap expand-structure" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:block"></div>

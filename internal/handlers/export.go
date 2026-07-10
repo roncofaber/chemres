@@ -15,6 +15,55 @@ import (
 
 const maxExportJSON = 10 << 20 // 10 MB
 
+// ghsCell collapses GHS data into a single semicolon-separated cell.
+func ghsCell(ghs *resolver.GHSData) string {
+	if ghs == nil {
+		return ""
+	}
+	hcodes := make([]string, len(ghs.HStatements))
+	for i, h := range ghs.HStatements {
+		if idx := strings.IndexAny(h, " ("); idx > 0 {
+			hcodes[i] = h[:idx]
+		} else {
+			hcodes[i] = h
+		}
+	}
+	var parts []string
+	if ghs.Signal != "" {
+		parts = append(parts, "Signal="+ghs.Signal)
+	}
+	if len(ghs.Pictograms) > 0 {
+		parts = append(parts, "Pictograms="+strings.Join(ghs.Pictograms, ","))
+	}
+	if len(hcodes) > 0 {
+		parts = append(parts, "HCodes="+strings.Join(hcodes, ","))
+	}
+	if ghs.PCodes != "" {
+		parts = append(parts, "PCodes="+ghs.PCodes)
+	}
+	return strings.Join(parts, "; ")
+}
+
+// computedPropsCell returns a semicolon-separated string of non-empty computed properties.
+func computedPropsCell(r resolver.CompoundResult) string {
+	var parts []string
+	add := func(k, v string) {
+		if v != "" {
+			parts = append(parts, k+"="+v)
+		}
+	}
+	add("ExactMass", r.ExactMass)
+	add("XLogP", propFloat(r.XLogP, 2))
+	add("TPSA", propFloat(r.TPSA, 1))
+	add("HBD", propInt(r.HBondDonorCount))
+	add("HBA", propInt(r.HBondAcceptorCount))
+	add("RotBonds", propInt(r.RotatableBondCount))
+	add("Stereocenters", propInt(r.AtomStereoCount))
+	add("Charge", propInt(r.Charge))
+	add("Volume3D", propFloat(r.Volume3D, 1))
+	return strings.Join(parts, "; ")
+}
+
 type ExportHandler struct {
 	tmpl *template.Template
 }
@@ -57,10 +106,27 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cw := csv.NewWriter(w)
-	header := []string{"Input", "CID", "PubChemURL", "IUPAC", "CommonName", "Formula", "MW", "ExactMass", "CAS", "InChIKey", "InChI", "CanonicalSMILES", "IsomericSMILES", "XLogP", "TPSA", "HBondDonors", "HBondAcceptors", "RotatableBonds", "AtomStereoCount", "Charge", "Volume3D", "ResolvedAt", "Error"}
-	if hasGHS {
-		header = append(header, "GHSSignal", "GHSPictograms", "GHSHazardCodes", "GHSPrecautionaryCodes")
+	hasRoles := false
+	for _, res := range results {
+		if res.Role != "" {
+			hasRoles = true
+			break
+		}
 	}
+
+	header := []string{"Input"}
+	if hasRoles {
+		header = append(header, "Role")
+	}
+	header = append(header,
+		"CID", "PubChemURL", "CommonName", "IUPAC", "Formula", "MW",
+		"CAS", "InChIKey", "InChI", "CanonicalSMILES", "IsomericSMILES",
+		"ComputedProperties",
+	)
+	if hasGHS {
+		header = append(header, "GHS")
+	}
+	header = append(header, "ResolvedAt", "Error")
 	cw.Write(header)
 
 	for _, res := range results {
@@ -74,35 +140,19 @@ func (h *ExportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if !res.ResolvedAt.IsZero() {
 			resolvedAt = res.ResolvedAt.UTC().Format("2006-01-02T15:04:05Z")
 		}
-		row := []string{
-			res.Input, cid, pubchemURL, res.IUPAC, res.CommonName, res.Formula, res.MW,
-			res.ExactMass, res.CAS, res.InChIKey, res.InChI, res.Canonical, res.Isomeric,
-			propFloat(res.XLogP, 2), propFloat(res.TPSA, 1),
-			propInt(res.HBondDonorCount), propInt(res.HBondAcceptorCount),
-			propInt(res.RotatableBondCount), propInt(res.AtomStereoCount),
-			propInt(res.Charge), propFloat(res.Volume3D, 1),
-			resolvedAt, res.Error,
+		row := []string{res.Input}
+		if hasRoles {
+			row = append(row, res.Role)
 		}
+		row = append(row,
+			cid, pubchemURL, res.CommonName, res.IUPAC, res.Formula, res.MW,
+			res.CAS, res.InChIKey, res.InChI, res.Canonical, res.Isomeric,
+			computedPropsCell(res),
+		)
 		if hasGHS {
-			if res.GHS != nil {
-				hcodes := make([]string, len(res.GHS.HStatements))
-				for i, h := range res.GHS.HStatements {
-					if idx := strings.IndexAny(h, " ("); idx > 0 {
-						hcodes[i] = h[:idx]
-					} else {
-						hcodes[i] = h
-					}
-				}
-				row = append(row,
-					res.GHS.Signal,
-					strings.Join(res.GHS.Pictograms, ";"),
-					strings.Join(hcodes, ";"),
-					res.GHS.PCodes,
-				)
-			} else {
-				row = append(row, "", "", "", "")
-			}
+			row = append(row, ghsCell(res.GHS))
 		}
+		row = append(row, resolvedAt, res.Error)
 		cw.Write(row)
 	}
 	cw.Flush()

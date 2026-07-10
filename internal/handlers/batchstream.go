@@ -75,6 +75,7 @@ func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			summary := batchSummary{Total: len(snap.Results)}
+			hasRoles := false
 			for _, res := range snap.Results {
 				switch {
 				case res.Error == "Not found in PubChem":
@@ -83,6 +84,9 @@ func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					summary.Errors++
 				default:
 					summary.Found++
+				}
+				if res.Role != "" {
+					hasRoles = true
 				}
 			}
 			jsonBytes, err := json.Marshal(snap.Results)
@@ -96,6 +100,7 @@ func (h *BatchStreamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				ResultsJSON: string(jsonBytes),
 				Summary:     summary,
 				SystemID:    h.resolver.SystemID(),
+				HasRoles:    hasRoles,
 			}
 			var buf bytes.Buffer
 			if err := h.tmpl.ExecuteTemplate(&buf, "batch_result.html", data); err != nil {

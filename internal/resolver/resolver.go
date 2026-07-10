@@ -45,6 +45,7 @@ type CompoundResult struct {
 	Synonyms    []string  `json:"synonyms"`
 	Suggestions []string  `json:"suggestions,omitempty"`
 	GHS         *GHSData  `json:"ghs,omitempty"`
+	Role        string    `json:"role,omitempty"`
 	ResolvedAt  time.Time `json:"resolved_at"`
 	Error       string    `json:"error,omitempty"`
 	// Computed physicochemical properties
