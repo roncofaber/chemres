@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.5.1] — 2026-07-10
+
+### Fixed
+- Add `openbabel` to Docker image — CDXML parsing was silently failing in production
+
+---
+
 ## [v1.5.0] — 2026-07-10
 
 ### Added
