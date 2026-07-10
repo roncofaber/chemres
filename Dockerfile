@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.appVersion=${VERSION}" -
 
 # Run stage
 FROM alpine:3.20
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates openbabel
 WORKDIR /app
 COPY --from=builder /app/chem-resolver .
 COPY --from=builder /app/templates ./templates
