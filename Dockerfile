@@ -8,8 +8,10 @@ ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.appVersion=${VERSION}" -o chem-resolver .
 
 # Run stage
-FROM alpine:3.20
-RUN apk --no-cache add ca-certificates openbabel
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates openbabel \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/chem-resolver .
 COPY --from=builder /app/templates ./templates
