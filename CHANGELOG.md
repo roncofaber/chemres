@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [v1.6.1] — 2026-08-07
+
+### Added
+- Search engines and link previews now show a proper page description and preview image
+- A short "what is this" tooltip on the homepage tagline
+
+### Fixed
+- Dragging to rotate a 3D structure no longer closes the viewer if you release the mouse outside it
+- Structure image on the result card is now larger and square on narrow screens, and stays correctly sized when resizing the window
+- 2D/3D toggle no longer overlaps the CID row on narrow screens
+
 ## [v1.6.0] — 2026-08-07
 
 View compounds in 3D, plus a round of batch, accessibility, and reliability improvements.

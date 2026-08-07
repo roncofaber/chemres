@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#05080f"/>
+  <g transform="translate(600 245)" fill="none" stroke="#22d3ee" opacity="0.9">
+    <polygon points="0,-135 117,-67.5 117,67.5 0,135 -117,67.5 -117,-67.5" stroke-width="6"/>
+    <circle cx="0" cy="0" r="64" stroke-width="4"/>
+  </g>
+  <text x="600" y="460" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="700" fill="#d4e4f4" letter-spacing="1">ChemRes</text>
+  <text x="600" y="512" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="26" fill="#6080a0" letter-spacing="2">CHEMICAL IDENTIFIER RESOLVER</text>
+</svg>

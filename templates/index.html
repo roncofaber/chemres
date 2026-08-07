@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChemRes — Chemical Resolver</title>
+  <meta name="description" content="Resolve chemical identifiers — SMILES, CAS numbers, names, InChIKeys, and InChI — via the PubChem REST API. Batch resolve reactions from ChemDraw CDXML files, view GHS hazard data, and inspect 2D/3D structures.">
+  <link rel="canonical" href="https://chemres.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chemres.app/">
+  <meta property="og:title" content="ChemRes — Chemical Resolver">
+  <meta property="og:description" content="Resolve chemical identifiers — SMILES, CAS numbers, names, InChIKeys, and InChI — via the PubChem REST API.">
+  <meta property="og:image" content="https://chemres.app/static/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5' fill='none' stroke='%2322d3ee' stroke-width='9' stroke-linejoin='round'/><circle cx='50' cy='50' r='23' fill='none' stroke='%2322d3ee' stroke-width='7'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,10 +23,12 @@
 <body>
   <div class="page-wrap">
     <header class="site-header">
-      <svg class="site-header-hex" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
-        <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
-        <circle cx="50" cy="50" r="24" stroke-width="1"/>
-      </svg>
+      <div class="site-header-hex-clip">
+        <svg class="site-header-hex" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
+          <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="24" stroke-width="1"/>
+        </svg>
+      </div>
       <button class="theme-toggle" title="Toggle theme">
         <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4"/>
@@ -32,7 +42,7 @@
         </svg>
       </button>
       <h1><span class="h1-primary">Chemical</span><span class="h1-validator">&nbsp;&nbsp;Resolver</span></h1>
-      <p>Resolve chemical identifiers via the PubChem REST API</p>
+      <p>Resolve chemical identifiers via the PubChem REST API<span class="card-title-hint-wrap tagline-hint-wrap"><span class="card-title-hint">ⓘ</span><span class="card-title-tooltip tagline-tooltip">Looks up SMILES, CAS numbers, chemical names, InChIKeys, and InChI strings against PubChem, returning structures, properties, and GHS safety data. Resolve one at a time or in batch — including directly from ChemDraw CDXML reaction files — and view compounds in 2D or 3D.</span></span></p>
     </header>
 
     <section class="card">

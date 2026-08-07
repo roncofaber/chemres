@@ -322,6 +322,10 @@ function drawStructure(el) {
   var formula = el.getAttribute('data-formula') || '';
   var cid     = el.getAttribute('data-cid');
   var dlName  = cid ? name + '_CID' + cid : name;
+  // Always draw at the same intrinsic size — display size (including the
+  // larger single-lookup size on narrow screens) is controlled purely by
+  // CSS on .structure-wrap svg, so it stays reactive to the current
+  // viewport instead of a one-time snapshot taken at draw time.
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 160, height: 140, padding: 10, bondThickness: 1.2, isomeric: true, explicitHydrogens: false });
   drawer.draw(smiles, null, currentTheme(), function(svgEl) {
     el.innerHTML = '';

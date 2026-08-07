@@ -161,7 +161,16 @@ body {
   border-bottom: 1px solid var(--border-mid);
   margin-bottom: 2rem;
   position: relative;
+  z-index: 2;
+}
+
+.site-header-hex-clip {
+  /* Clips just the oversized decorative logo's corner bleed — kept separate
+     from .site-header itself so it doesn't also clip the tagline tooltip. */
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .site-header-hex {
@@ -339,6 +348,21 @@ body {
 
 .card-title-hint-wrap:hover .card-title-tooltip {
   opacity: 1;
+}
+
+.tagline-hint-wrap {
+  margin-top: 0;
+  vertical-align: middle;
+}
+
+.card-title-hint-wrap .card-title-tooltip.tagline-tooltip {
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: normal;
+  width: min(320px, 80vw);
+  line-height: 1.5;
 }
 
 .label-row {
@@ -1393,8 +1417,20 @@ input.batch-filter:focus { border-color: var(--accent); }
 
 .structure-wrap svg {
   display: block;
+  width: 160px;
+  height: 140px;
   max-width: 100%;
-  height: auto;
+}
+
+@media (max-width: 520px) {
+  /* Single lookup only (scoped via #lookup-result, which also beats the
+     base rule's specificity regardless of source order): table and
+     structure stack vertically here, freeing up width — show the same
+     vector content larger and square instead of the desktop 160x140. */
+  #lookup-result .structure-wrap svg {
+    width: 220px;
+    height: 220px;
+  }
 }
 
 .structure-3d-frame {
@@ -1409,6 +1445,14 @@ input.batch-filter:focus { border-color: var(--accent); }
   box-shadow: 0 4px 20px var(--found-glow-near);
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 520px) {
+  /* Matches drawStructure()'s enlarged single-lookup size on narrow screens. */
+  .structure-3d-frame {
+    width: calc(220px + 0.7rem + 2px);
+    height: calc(220px + 0.7rem + 2px);
+  }
 }
 
 .structure-wrap-3d {
@@ -1458,6 +1502,17 @@ input.batch-filter:focus { border-color: var(--accent); }
   background: var(--surface2);
   border-radius: var(--radius);
   padding: 2px;
+}
+
+@media (max-width: 520px) {
+  /* Table and structure stack vertically here (see .result-body above), so
+     the toggle floating above .structure-col via absolute positioning would
+     land on top of the CID row instead. Drop it back into normal flow. */
+  .inline-view-toggle {
+    position: static;
+    transform: none;
+    margin-bottom: 0.4rem;
+  }
 }
 
 .structure-col {
