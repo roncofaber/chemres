@@ -2,10 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+- Batch: Ctrl/Cmd+Enter in the identifiers box resolves without clicking the button
+- Batch: helpful message when nothing in a batch resolves
+- Batch: capped at 1000 identifiers per run, with a clear message if exceeded
+
 ### Fixed
 - Server now shuts down cleanly on deploy instead of dropping in-flight requests
 - Excel file handle leak on batch upload
 - Container no longer runs as root
+- Structure modal now returns keyboard focus to where you opened it from, and keeps Tab navigation inside the modal while open
+- Screen readers now announce when search suggestions appear
 
 ## [v1.5.2] — 2026-07-10
 

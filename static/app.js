@@ -137,8 +137,11 @@ function toggleDlMenu(menu) {
 /* ── Structure modal ────────────────────────────────────────────── */
 var _modalSmiles = null, _modalName = null, _modalFormula = null, _modalCID = null;
 
+var _modalTrigger = null;
+
 function openStructureModal(smiles, name, formula, cid) {
   _modalSmiles = smiles; _modalName = name; _modalFormula = formula; _modalCID = cid || null;
+  _modalTrigger = document.activeElement;
   var modal  = document.getElementById('structure-modal');
   var cont   = document.getElementById('modal-structure');
   var title  = (name || smiles).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -147,6 +150,7 @@ function openStructureModal(smiles, name, formula, cid) {
   cont.innerHTML = '';
   modal.classList.add("is-open");
   document.body.style.overflow = 'hidden';
+  document.querySelector('.modal-close').focus();
 
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
   drawer.draw(smiles, null, currentTheme(), function(svgEl) {
@@ -160,6 +164,21 @@ function closeStructureModal() {
   document.getElementById('structure-modal').classList.remove('is-open');
   document.body.style.overflow = '';
   _modalSmiles = null; _modalName = null; _modalFormula = null; _modalCID = null;
+  if (_modalTrigger) { _modalTrigger.focus(); _modalTrigger = null; }
+}
+
+function trapModalTab(e) {
+  if (e.key !== 'Tab') return;
+  if (!document.getElementById('structure-modal').classList.contains('is-open')) return;
+  var box = document.querySelector('#structure-modal .modal-box');
+  var focusable = box.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (!focusable.length) return;
+  var first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
 }
 
 function drawStructure(el) {
@@ -475,6 +494,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Batch form submit
   document.getElementById('batch-form').addEventListener('submit', startBatch);
 
+  // Ctrl/Cmd+Enter submits the batch form from the textarea
+  document.getElementById('batch-inputs').addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('batch-form').requestSubmit();
+    }
+  });
+
   // Cancel batch
   document.getElementById('batch-cancel').addEventListener('click', cancelBatch);
 
@@ -530,6 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       _sugClose();
       return;
     }
+    trapModalTab(e);
     if (document.activeElement !== document.getElementById('lookup-input')) return;
     var items = _sugItems();
     if (!items.length) { _sugIdx = -1; return; }

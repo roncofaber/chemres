@@ -1016,6 +1016,18 @@ details summary::-webkit-details-marker { display: none; }
   margin-bottom: 0.4rem;
 }
 
+.batch-empty-hint {
+  font-family: var(--font-sans);
+  font-size: var(--fs-data);
+  color: var(--text-muted);
+  background: var(--surface2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.6rem;
+  line-height: 1.5;
+}
+
 .batch-pills {
   display: flex;
   gap: 0.4rem;

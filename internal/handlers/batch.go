@@ -3,6 +3,7 @@ package handlers
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 )
 
 const maxBatchFileSize = 5 << 20
+const maxBatchInputs = 1000
 
 // batchSummary and batchData are used by both BatchStartHandler (indirectly) and BatchStreamHandler.
 type batchSummary struct {
@@ -147,6 +149,11 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(inputs) == 0 {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(startResponse{Error: "No valid inputs found — enter one per line."})
+		return
+	}
+	if len(inputs) > maxBatchInputs {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(startResponse{Error: fmt.Sprintf("Too many identifiers — maximum is %d per batch (got %d).", maxBatchInputs, len(inputs))})
 		return
 	}
 

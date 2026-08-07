@@ -5,6 +5,11 @@
 </div>
 {{else}}
 <div class="mt-md batch-results">
+  {{if eq .Summary.Found 0}}
+  <div class="batch-empty-hint">
+    Nothing resolved. Check spelling, or try a different format — SMILES, CAS number (e.g. 64-17-5), or InChIKey often succeed where a common name doesn't.
+  </div>
+  {{end}}
   <div class="batch-meta">
     <div class="batch-pills">
       <span class="summary-pill valid">{{.Summary.Found}} found</span>

@@ -60,7 +60,7 @@
                    hx-include="this"
                    hx-params="input"
                    hx-indicator="#lookup-suggest-spinner">
-            <div id="lookup-suggestions" class="suggest-dropdown" role="listbox" aria-label="Suggestions"></div>
+            <div id="lookup-suggestions" class="suggest-dropdown" role="listbox" aria-label="Suggestions" aria-live="polite"></div>
             <div class="input-spinner" id="lookup-suggest-spinner"></div>
             <div class="input-spinner" id="lookup-resolve-spinner"></div>
           </div>
@@ -87,7 +87,7 @@
         </div>
         <textarea id="batch-inputs" name="inputs" rows="5"
                   placeholder="CCO&#10;acetone&#10;64-17-5&#10;LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
-                  spellcheck="false"></textarea>
+                  spellcheck="false" title="Ctrl/Cmd+Enter to resolve"></textarea>
         <p class="hint">Accepts SMILES, names, CAS numbers, and InChIKeys. Or upload a file:</p>
         <div class="input-row">
           <input type="file" name="file" accept=".txt,.csv,.xlsx,.cdxml" style="flex:1;margin-bottom:0;align-self:center">
@@ -107,10 +107,10 @@
 
   <!-- Structure modal -->
   <div id="structure-modal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-name">
       <div class="modal-header">
         <span id="modal-name" class="modal-title"></span>
-        <button class="modal-close">
+        <button class="modal-close" aria-label="Close">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
             <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
           </svg>
