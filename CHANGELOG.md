@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- Server now shuts down cleanly on deploy instead of dropping in-flight requests
+- Excel file handle leak on batch upload
+- Container no longer runs as root
+
 ## [v1.5.2] — 2026-07-10
 
 Upload ChemDraw reaction files and resolve every compound in them at once, plus a leaner CSV export.

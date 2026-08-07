@@ -110,6 +110,7 @@ func (h *BatchStartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(startResponse{Error: "Could not read Excel file."})
 				return
 			}
+			defer f.Close()
 			sheet := f.GetSheetName(0)
 			rows, err := f.GetRows(sheet)
 			if err != nil {
