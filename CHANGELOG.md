@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- View compounds in 3D — toggle between 2D and 3D on the result card and in the structure viewer
 - Batch: Ctrl/Cmd+Enter in the identifiers box resolves without clicking the button
 - Batch: helpful message when nothing in a batch resolves
 - Batch: capped at 1000 identifiers per run, with a clear message if exceeded
@@ -10,6 +11,10 @@
 - CAS numbers are now validated by check digit — a mistyped CAS is caught immediately instead of returning "not found"
 
 ### Fixed
+- Copying a 3D structure image to the clipboard now actually works
+- Dragging to rotate a 3D structure no longer closes the viewer if you release outside it
+- Switching light/dark theme while viewing a 3D structure no longer duplicates the image
+- Toggling between 2D and 3D no longer resizes the structure card or viewer
 - Server now shuts down cleanly on deploy instead of dropping in-flight requests
 - Excel file handle leak on batch upload
 - Container no longer runs as root

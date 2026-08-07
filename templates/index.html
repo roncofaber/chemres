@@ -110,6 +110,10 @@
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-name">
       <div class="modal-header">
         <span id="modal-name" class="modal-title"></span>
+        <div class="modal-view-toggle" id="modal-view-toggle" style="display:none">
+          <button class="view-toggle-btn is-active" data-view="2d">2D</button>
+          <button class="view-toggle-btn" data-view="3d">3D</button>
+        </div>
         <button class="modal-close" aria-label="Close">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:12px;height:12px">
             <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
@@ -117,6 +121,7 @@
         </button>
       </div>
       <div id="modal-structure" class="modal-structure"></div>
+      <div id="modal-structure-3d" class="modal-structure modal-structure-3d" style="display:none"></div>
       <div class="modal-footer">
         <button id="modal-copy-btn" class="btn btn-sm btn-secondary">{{template "icon/copy" .}}{{template "icon/check" .}} PNG</button>
         <div class="str-dl-wrap" id="modal-dl-wrap">

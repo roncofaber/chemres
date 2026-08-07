@@ -5,9 +5,22 @@ function toggleTheme() {
   document.cookie = 'chemres-theme=' + next + ';path=/;max-age=31536000;SameSite=Lax';
 
   document.querySelectorAll('.structure-wrap[data-sd-rendered]').forEach(function(el) {
+    var col        = el.closest('.structure-col');
+    var frame3d    = col && col.querySelector('.structure-3d-frame');
+    var was3dActive = frame3d && frame3d.style.display !== 'none';
     el.removeAttribute('data-sd-rendered');
     el.innerHTML = '';
     drawStructure(el);
+    // drawStructure() always shows the 2D panel — re-hide it if 3D was active
+    // so the two views don't end up stacked and both visible at once, and
+    // re-render the 3D canvas so its background picks up the new theme.
+    if (was3dActive) {
+      el.style.display = 'none';
+      _inlineViewer = null;
+      renderViewerInto(frame3d.querySelector('.structure-wrap-3d'), el.dataset.cid)
+        .then(function(v) { _inlineViewer = v; })
+        .catch(function() { _inlineViewer = null; });
+    }
   });
 
   if (_modalSmiles && document.getElementById('structure-modal').classList.contains('is-open')) {
@@ -100,6 +113,34 @@ function downloadPng(svgEl, name) {
   img.src = url;
 }
 
+function dataUriToBlob(dataUri) {
+  var parts     = dataUri.split(',');
+  var mimeMatch = parts[0].match(/:(.*?);/);
+  var mime      = mimeMatch ? mimeMatch[1] : 'image/png';
+  var bytes     = atob(parts[1]);
+  var arr       = new Uint8Array(bytes.length);
+  for (var i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function copyPngDataUri(dataUri, btn) {
+  // Decode locally instead of fetch(dataUri) — CSP's connect-src falls back
+  // to default-src 'self', which does not permit fetching data: URIs.
+  var blob = dataUriToBlob(dataUri);
+  function flash() {
+    btn.classList.add('copy-btn--done');
+    setTimeout(function() { btn.classList.remove('copy-btn--done'); }, 1500);
+  }
+  navigator.clipboard.write([new ClipboardItem({'image/png': blob})]).then(flash).catch(flash);
+}
+
+function downloadPngDataUri(dataUri, name) {
+  var a = document.createElement('a');
+  a.href = dataUri;
+  a.download = (name || 'structure').replace(/[^\w-]/g, '_').substring(0, 60) + '_3d.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
 function sdfToXyz(sdf, name) {
   var lines = sdf.split('\n');
   if (lines.length < 4) return null;
@@ -141,6 +182,7 @@ var _modalTrigger = null;
 
 function openStructureModal(smiles, name, formula, cid) {
   _modalSmiles = smiles; _modalName = name; _modalFormula = formula; _modalCID = cid || null;
+  _modalViewer = null;
   _modalTrigger = document.activeElement;
   var modal  = document.getElementById('structure-modal');
   var cont   = document.getElementById('modal-structure');
@@ -151,6 +193,11 @@ function openStructureModal(smiles, name, formula, cid) {
   modal.classList.add("is-open");
   document.body.style.overflow = 'hidden';
   document.querySelector('.modal-close').focus();
+
+  var toggle = document.getElementById('modal-view-toggle');
+  toggle.style.display = _modalCID ? 'flex' : 'none';
+  setModalView('2d');
+  if (_modalCID) prefetchConformer(_modalCID);
 
   var drawer  = new SmilesDrawer.SmiDrawer({ width: 420, height: 360, padding: 24, bondThickness: 1.6, isomeric: true, explicitHydrogens: false });
   drawer.draw(smiles, null, currentTheme(), function(svgEl) {
@@ -164,7 +211,94 @@ function closeStructureModal() {
   document.getElementById('structure-modal').classList.remove('is-open');
   document.body.style.overflow = '';
   _modalSmiles = null; _modalName = null; _modalFormula = null; _modalCID = null;
+  _modalViewer = null;
   if (_modalTrigger) { _modalTrigger.focus(); _modalTrigger = null; }
+}
+
+/* ── 3D structure viewer (shared: inline card + modal) ─────────────── */
+var _3dmolPromise   = null;
+var _conformerCache = {};   // cid -> Promise<SDF text>
+var _modalViewer    = null;
+var _inlineViewer   = null;
+
+function load3Dmol() {
+  if (typeof $3Dmol !== 'undefined') return Promise.resolve();
+  if (_3dmolPromise) return _3dmolPromise;
+  _3dmolPromise = new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/3dmol/build/3Dmol-min.js';
+    s.onload  = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return _3dmolPromise;
+}
+
+function fetchConformer(cid) {
+  if (!_conformerCache[cid]) {
+    _conformerCache[cid] = fetch('/api/v1/conformer?cid=' + encodeURIComponent(cid) + '&format=sdf')
+      .then(function(r) { if (!r.ok) throw new Error('no 3D conformer'); return r.text(); })
+      .catch(function(err) { delete _conformerCache[cid]; throw err; });
+  }
+  return _conformerCache[cid];
+}
+
+// Fires as soon as a CID is known, so the 3D data is already cached by the
+// time the user clicks the 3D toggle — avoids a visible loading state.
+function prefetchConformer(cid) {
+  if (!cid) return;
+  load3Dmol().catch(function() {});
+  fetchConformer(cid).catch(function() {});
+}
+
+function renderViewerInto(container, cid) {
+  container.innerHTML = '<p class="modal-3d-status">Loading 3D structure…</p>';
+  return load3Dmol().then(function() {
+    return fetchConformer(cid);
+  }).then(function(sdf) {
+    container.innerHTML = '';
+    var bgColor = getComputedStyle(document.documentElement).getPropertyValue('--structure-bg').trim();
+    var viewer = $3Dmol.createViewer(container, { backgroundColor: bgColor || '#ffffff' });
+    viewer.addModel(sdf, 'sdf');
+    viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { scale: 0.25 } });
+    viewer.zoomTo();
+    viewer.render();
+    return viewer;
+  }).catch(function(err) {
+    container.innerHTML = '<p class="modal-3d-status" style="color:var(--error-text)">No 3D conformer available for this compound.</p>';
+    throw err;
+  });
+}
+
+function setModalView(view) {
+  var is3d = view === '3d';
+  document.querySelectorAll('#modal-view-toggle .view-toggle-btn').forEach(function(btn) {
+    btn.classList.toggle('is-active', btn.dataset.view === view);
+  });
+  document.getElementById('modal-structure').style.display    = is3d ? 'none' : '';
+  document.getElementById('modal-structure-3d').style.display = is3d ? '' : 'none';
+  if (is3d && !_modalViewer) {
+    renderViewerInto(document.getElementById('modal-structure-3d'), _modalCID)
+      .then(function(v) { _modalViewer = v; })
+      .catch(function() { _modalViewer = null; });
+  }
+}
+
+function setInlineView(col, view) {
+  var is3d = view === '3d';
+  col.querySelectorAll('.inline-view-toggle .view-toggle-btn').forEach(function(btn) {
+    btn.classList.toggle('is-active', btn.dataset.view === view);
+  });
+  var wrap2d = col.querySelector('.structure-wrap');
+  var frame3d = col.querySelector('.structure-3d-frame');
+  var wrap3d = frame3d.querySelector('.structure-wrap-3d');
+  wrap2d.style.display  = is3d ? 'none' : '';
+  frame3d.style.display = is3d ? '' : 'none';
+  if (is3d && !_inlineViewer) {
+    renderViewerInto(wrap3d, wrap2d.dataset.cid)
+      .then(function(v) { _inlineViewer = v; })
+      .catch(function() { _inlineViewer = null; });
+  }
 }
 
 function trapModalTab(e) {
@@ -196,6 +330,12 @@ function drawStructure(el) {
     el.style.display = '';
     el.style.cursor  = 'zoom-in';
     el.onclick = function() { openStructureModal(smiles, name, formula, cid); };
+    // Single lookup only: prefetch the 3D conformer so the inline 2D/3D
+    // toggle switches instantly. Batch rows skip this (only fetched on modal open).
+    if (cid && el.closest('#lookup-result')) {
+      _inlineViewer = null;
+      prefetchConformer(cid);
+    }
   }, function() { /* keep hidden */ });
 }
 
@@ -542,13 +682,33 @@ document.addEventListener('DOMContentLoaded', function() {
     this.querySelector('.btn').disabled = false;
   });
 
-  // Modal overlay click
-  document.getElementById('structure-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeStructureModal();
-  });
+  // Modal overlay click — only close if BOTH the press and release landed
+  // directly on the backdrop. Uses document-level capture-phase listeners
+  // (fire before any stopPropagation() further down, e.g. in 3Dmol's own
+  // canvas handlers) and checks mousedown/mouseup targets directly instead
+  // of relying on synthesized click events, whose target can end up being
+  // the backdrop (the common ancestor) even when a drag merely started on
+  // the 3D viewer and released outside the modal box.
+  var _overlayDragStartedOnBackdrop = false;
+  var _structureModalEl = document.getElementById('structure-modal');
+  document.addEventListener('mousedown', function(e) {
+    _overlayDragStartedOnBackdrop = (e.target === _structureModalEl);
+  }, true);
+  document.addEventListener('mouseup', function(e) {
+    if (_overlayDragStartedOnBackdrop && e.target === _structureModalEl && _structureModalEl.classList.contains('is-open')) {
+      closeStructureModal();
+    }
+    _overlayDragStartedOnBackdrop = false;
+  }, true);
 
   // Modal close button
   document.querySelector('.modal-close').addEventListener('click', closeStructureModal);
+
+  // Modal 2D/3D view toggle
+  document.getElementById('modal-view-toggle').addEventListener('click', function(e) {
+    var btn = e.target.closest('.view-toggle-btn');
+    if (btn) setModalView(btn.dataset.view);
+  });
 
   // Keyboard: Escape closes modal; Arrow keys / Enter for suggestions
   document.addEventListener('keydown', function(e) {
@@ -597,9 +757,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expand row toggle
     var row = e.target.closest('.expandable-row');
     if (row) { toggleBatchRow(row); return; }
-
-    // Modal overlay
-    if (e.target === document.getElementById('structure-modal')) { closeStructureModal(); return; }
   });
 
   // "Did you mean?" suggestion clicks
@@ -620,24 +777,52 @@ document.addEventListener('DOMContentLoaded', function() {
       if (text) copyText(btn, text.trim());
       return;
     }
+    var viewToggleBtn = e.target.closest('.inline-view-toggle .view-toggle-btn');
+    if (viewToggleBtn) {
+      setInlineView(viewToggleBtn.closest('.structure-col'), viewToggleBtn.dataset.view);
+      return;
+    }
+    var expand3dBtn = e.target.closest('.structure-3d-expand');
+    if (expand3dBtn) {
+      var wrap = expand3dBtn.closest('.structure-col').querySelector('.structure-wrap');
+      openStructureModal(wrap.dataset.smiles, wrap.dataset.name, wrap.dataset.formula, wrap.dataset.cid);
+      setModalView('3d');
+      return;
+    }
     var copyBtn = e.target.closest('.str-copy-btn');
     if (copyBtn) {
-      var svgEl = copyBtn.closest('.structure-col').querySelector('.structure-wrap svg');
-      if (svgEl) copyAsPng(svgEl, copyBtn);
+      var col = copyBtn.closest('.structure-col');
+      var frame3d = col.querySelector('.structure-3d-frame');
+      if (frame3d && frame3d.style.display !== 'none' && _inlineViewer) {
+        copyPngDataUri(_inlineViewer.pngURI(), copyBtn);
+      } else {
+        var svgEl = col.querySelector('.structure-wrap svg');
+        if (svgEl) copyAsPng(svgEl, copyBtn);
+      }
       return;
     }
     var dlToggle = e.target.closest('.str-dl-btn');
-    if (dlToggle) { toggleDlMenu(dlToggle.nextElementSibling); return; }
+    if (dlToggle) {
+      var menu = dlToggle.nextElementSibling;
+      var is3dActive = dlToggle.closest('.structure-col').querySelector('.structure-3d-frame').style.display !== 'none';
+      var svgOpt = menu.querySelector('.dl-opt[data-dl="svg"]');
+      if (svgOpt) svgOpt.style.display = is3dActive ? 'none' : '';
+      toggleDlMenu(menu);
+      return;
+    }
     var dlOpt = e.target.closest('.dl-opt');
     if (dlOpt && dlOpt.closest('.str-dl-wrap')) {
       var col = dlOpt.closest('.structure-col');
       var wrap = col.querySelector('.structure-wrap');
+      var frame3d = col.querySelector('.structure-3d-frame');
+      var is3dActive = frame3d.style.display !== 'none';
       var svgEl = wrap && wrap.querySelector('svg');
       var n = wrap && (wrap.dataset.name || wrap.dataset.smiles);
       var c = wrap && wrap.dataset.cid;
       var dlName = c ? (n||'structure')+'_CID'+c : (n||'structure');
       var fmt = dlOpt.dataset.dl;
-      if (fmt==='svg')      downloadSvg(svgEl, dlName);
+      if (fmt==='png' && is3dActive && _inlineViewer) downloadPngDataUri(_inlineViewer.pngURI(), dlName);
+      else if (fmt==='svg')      downloadSvg(svgEl, dlName);
       else if (fmt==='png') downloadPng(svgEl, dlName);
       else if (fmt==='sdf') downloadFromCid(c, dlName, 'sdf');
       else if (fmt==='xyz') downloadFromCid(c, dlName, 'xyz');
@@ -647,12 +832,22 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Modal copy + download
+  function modalIs3DActive() {
+    return document.getElementById('modal-structure-3d').style.display !== 'none';
+  }
   document.getElementById('modal-copy-btn').addEventListener('click', function() {
-    var svgEl = document.querySelector('#modal-structure svg');
-    if (svgEl) copyAsPng(svgEl, this);
+    if (modalIs3DActive() && _modalViewer) {
+      copyPngDataUri(_modalViewer.pngURI(), this);
+    } else {
+      var svgEl = document.querySelector('#modal-structure svg');
+      if (svgEl) copyAsPng(svgEl, this);
+    }
   });
   document.getElementById('modal-dl-btn').addEventListener('click', function() {
-    toggleDlMenu(document.getElementById('modal-dl-menu'));
+    var menu = document.getElementById('modal-dl-menu');
+    var svgOpt = menu.querySelector('.dl-opt[data-dl="svg"]');
+    if (svgOpt) svgOpt.style.display = modalIs3DActive() ? 'none' : '';
+    toggleDlMenu(menu);
   });
   document.getElementById('modal-dl-menu').addEventListener('click', function(e) {
     var opt = e.target.closest('.dl-opt');
@@ -660,7 +855,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var svgEl = document.querySelector('#modal-structure svg');
     var dlName = _modalCID ? (_modalName||'structure')+'_CID'+_modalCID : (_modalName||'structure');
     var fmt = opt.dataset.dl;
-    if (fmt==='svg')      downloadSvg(svgEl, dlName);
+    if (fmt==='png' && modalIs3DActive() && _modalViewer) downloadPngDataUri(_modalViewer.pngURI(), dlName);
+    else if (fmt==='svg')      downloadSvg(svgEl, dlName);
     else if (fmt==='png') downloadPng(svgEl, dlName);
     else if (fmt==='sdf') downloadFromCid(_modalCID, dlName, 'sdf');
     else if (fmt==='xyz') downloadFromCid(_modalCID, dlName, 'xyz');

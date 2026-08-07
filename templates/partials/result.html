@@ -104,7 +104,21 @@
   </table>
   {{if .Canonical}}
   <div class="structure-col">
+    {{if .CID}}
+    <div class="inline-view-toggle">
+      <button class="view-toggle-btn is-active" data-view="2d">2D</button>
+      <button class="view-toggle-btn" data-view="3d">3D</button>
+    </div>
+    {{end}}
     <div class="structure-wrap" data-smiles="{{.Canonical}}" data-name="{{if .CommonName}}{{.CommonName}}{{else}}{{.IUPAC}}{{end}}" data-cid="{{.CID}}" data-formula="{{.Formula}}" style="display:none"></div>
+    <div class="structure-3d-frame" style="display:none">
+      <div class="structure-wrap-3d"></div>
+      <button class="structure-3d-expand" title="Open larger view" aria-label="Open larger view">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2H2v4M10 2h4v4M14 10v4h-4M2 10v4h4"/>
+        </svg>
+      </button>
+    </div>
     <div class="structure-actions">
       <button class="btn btn-sm btn-secondary str-copy-btn">{{template "icon/copy" .}}{{template "icon/check" .}} PNG</button>
       <div class="str-dl-wrap">

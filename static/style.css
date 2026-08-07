@@ -126,7 +126,7 @@
   --found-glow-near:     rgba(5,150,105,0.10);
   --found-glow-far:      rgba(5,150,105,0.08);
   --invalid-glow:        rgba(153,27,27,0.15);
-  --structure-bg:        #0d1424;
+  --structure-bg:        #090e1c;
 }
 
 /* ── Reset ───────────────────────────────────────────────────── */
@@ -1397,7 +1397,71 @@ input.batch-filter:focus { border-color: var(--accent); }
   height: auto;
 }
 
+.structure-3d-frame {
+  /* Outer footprint matches .structure-wrap exactly (160x140 content + its
+     0.35rem padding + 1px border) so toggling 2D/3D doesn't resize the card. */
+  flex-shrink: 0;
+  width: calc(160px + 0.7rem + 2px);
+  height: calc(140px + 0.7rem + 2px);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  background: var(--structure-bg);
+  box-shadow: 0 4px 20px var(--found-glow-near);
+  position: relative;
+  overflow: hidden;
+}
+
+.structure-wrap-3d {
+  width: 100%;
+  height: 100%;
+}
+
+.structure-3d-expand {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.structure-3d-expand:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+.structure-3d-expand svg {
+  width: 11px;
+  height: 11px;
+}
+
+.inline-view-toggle {
+  /* Floats above the structure image without taking up flow space, so the
+     image itself stays top-aligned with the IUPAC row like before. */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, calc(-100% - 0.4rem));
+  display: flex;
+  gap: 2px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 2px;
+}
+
 .structure-col {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1512,6 +1576,11 @@ input.batch-filter:focus { border-color: var(--accent); }
   overflow: hidden;
 }
 
+@media (min-width: 521px) {
+  /* Fixed width so switching between the 2D/3D panels doesn't resize the modal. */
+  .modal-box { width: 460px; }
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -1565,6 +1634,63 @@ input.batch-filter:focus { border-color: var(--accent); }
   border-radius: var(--radius);
   padding: 0.5rem 1.25rem;
   line-height: 0;
+}
+
+.modal-structure-3d {
+  /* Height matches .modal-structure's effective height (360px SVG + its
+     0.5rem top/bottom padding) so toggling 2D/3D doesn't resize the modal. */
+  width: min(420px, 100%);
+  height: calc(360px + 1rem);
+  margin: 0 auto;
+  background: var(--structure-bg);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-3d-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--text-muted);
+  padding: 1rem;
+  text-align: center;
+}
+
+.modal-view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.view-toggle-btn {
+  padding: 0.25rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius) - 1px);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-toggle-btn.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.view-toggle-btn:hover:not(.is-active) {
+  color: var(--text);
 }
 
 /* ── Textarea ────────────────────────────────────────────────── */
