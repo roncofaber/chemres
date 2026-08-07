@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [v1.6.0] — 2026-08-07
+
+View compounds in 3D, plus a round of batch, accessibility, and reliability improvements.
+
 ### Added
 - View compounds in 3D — toggle between 2D and 3D on the result card and in the structure viewer
 - Batch: Ctrl/Cmd+Enter in the identifiers box resolves without clicking the button
