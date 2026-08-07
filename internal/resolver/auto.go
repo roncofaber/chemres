@@ -74,7 +74,17 @@ func NewAutoResolver() Resolver {
 func (r *AutoResolver) SystemID() string { return "auto" }
 
 func (r *AutoResolver) resolve(ctx context.Context, input string, withSynonyms bool) (CompoundResult, error) {
-	if casRE.MatchString(input) || inchiKeyRE.MatchString(input) {
+	if casRE.MatchString(input) {
+		if !isValidCAS(input) {
+			return CompoundResult{
+				Input:      input,
+				Error:      "Not a valid CAS number — check digit doesn't match. Verify the number and try again.",
+				ResolvedAt: time.Now().UTC(),
+			}, nil
+		}
+		return r.name.resolve(ctx, input, withSynonyms)
+	}
+	if inchiKeyRE.MatchString(input) {
 		return r.name.resolve(ctx, input, withSynonyms)
 	}
 	if strings.HasPrefix(input, "InChI=") {
@@ -109,13 +119,37 @@ func (r *AutoResolver) BatchWithProgress(ctx context.Context, inputs []string, o
 	var wg sync.WaitGroup
 	var doneCount int32
 
+	// Dedup: identical input strings resolve once and share the result —
+	// avoids wasting rate-limited PubChem calls on repeated identifiers.
+	type cacheEntry struct {
+		once   sync.Once
+		result CompoundResult
+		err    error
+	}
+	var cacheMu sync.Mutex
+	cache := make(map[string]*cacheEntry)
+	getEntry := func(input string) *cacheEntry {
+		cacheMu.Lock()
+		defer cacheMu.Unlock()
+		e, ok := cache[input]
+		if !ok {
+			e = &cacheEntry{}
+			cache[input] = e
+		}
+		return e
+	}
+
 	for i, input := range inputs {
 		wg.Add(1)
 		go func(idx int, in string) {
 			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			res, err := r.resolve(ctx, in, false)
+			entry := getEntry(in)
+			entry.once.Do(func() {
+				sem <- struct{}{}
+				defer func() { <-sem }()
+				entry.result, entry.err = r.resolve(ctx, in, false)
+			})
+			res, err := entry.result, entry.err
 			if err != nil {
 				res = CompoundResult{Input: in, Error: "API error: " + err.Error(), ResolvedAt: time.Now().UTC()}
 			}

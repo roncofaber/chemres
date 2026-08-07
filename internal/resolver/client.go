@@ -36,6 +36,27 @@ var errBadInput = errors.New("bad input")
 var casRE      = regexp.MustCompile(`^\d+-\d+-\d+$`)
 var inchiKeyRE = regexp.MustCompile(`^[A-Z]{14}-[A-Z]{10}-[A-Z]$`)
 
+// isValidCAS reports whether s has correct CAS Registry Number shape AND check digit.
+// Format: NNNNNNN-NN-N (2-7 digits, 2 digits, 1 check digit), e.g. 64-17-5 (ethanol).
+// The check digit is the last digit of the sum of all preceding digits, each
+// multiplied by its distance (1-indexed) from the check digit, mod 10.
+func isValidCAS(s string) bool {
+	if !casRE.MatchString(s) {
+		return false
+	}
+	digits := strings.ReplaceAll(s, "-", "")
+	if len(digits) < 5 {
+		return false
+	}
+	sum, weight := 0, 1
+	for i := len(digits) - 2; i >= 0; i-- {
+		sum += int(digits[i]-'0') * weight
+		weight++
+	}
+	check := int(digits[len(digits)-1] - '0')
+	return sum%10 == check
+}
+
 func firstCommonName(synonyms []string) string {
 	for _, s := range synonyms {
 		if casRE.MatchString(s) || inchiKeyRE.MatchString(s) {

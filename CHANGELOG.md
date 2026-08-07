@@ -6,6 +6,8 @@
 - Batch: Ctrl/Cmd+Enter in the identifiers box resolves without clicking the button
 - Batch: helpful message when nothing in a batch resolves
 - Batch: capped at 1000 identifiers per run, with a clear message if exceeded
+- Batch: duplicate identifiers now resolve once and share the result, instead of repeating the lookup
+- CAS numbers are now validated by check digit — a mistyped CAS is caught immediately instead of returning "not found"
 
 ### Fixed
 - Server now shuts down cleanly on deploy instead of dropping in-flight requests
